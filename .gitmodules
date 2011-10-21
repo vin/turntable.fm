@@ -1,0 +1,3 @@
+[submodule "ttapi"]
+	path = ttapi
+	url = git://github.com/alaingilbert/Turntable-API.git
