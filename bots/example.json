@@ -11,6 +11,10 @@
 			"Hello {user.name}",
 			"Hey there {user.name}"
 		],
+		"newUserGreetings": [
+			"Welcome to turntable {user.name}!",
+			"Hi {user.name}, welcome to turntable!"
+		],
 		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility."
 	}
 }
