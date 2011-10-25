@@ -1,0 +1,11 @@
+{
+	"auth": "",
+	"userid": "",
+	"roomid": "",
+	"greetings_filename": "greetings.json",
+	"banList": [],
+	"messages": {
+		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands. More info at http://goo.gl/3Ckbz",
+		"defaultGreeting": "Hi {user.name}!"
+	}
+}
