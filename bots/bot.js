@@ -121,3 +121,7 @@ Bot.bareCommands = [
 ];
 
 exports.Bot = Bot;
+
+if (process.argv.length > 2) {
+	new Bot(process.argv[2]).start();
+}
