@@ -75,7 +75,7 @@ Bot.prototype.onSpeak = function(data) {
 };
 
 Bot.prototype.onHelp = function() {
-	this.ttapi.speak(this.config.messages.help.replace("{room.name}", this.roomInfo.room.name));
+	this.ttapi.speak(this.config.messages.help.replace(/{room\.name}/g, this.roomInfo.room.name));
 };
 
 Bot.prototype.onHelpCommands = function() {
@@ -91,8 +91,17 @@ Bot.prototype.onRegistered = function(data) {
 	if (user.userid == this.config.userid) {
 		this.ttapi.roomInfo(this.onRoomInfo.bind(this));
 	} else {
-		this.ttapi.speak(this.config.messages.defaultGreeting.replace("{user.name}", user.name));
+		this.ttapi.speak(this.greeting(user));
 	}
+};
+
+Bot.prototype.greeting = function(user) {
+	var message = this.greetings[user.userid] || randomElement(this.config.messages.defaultGreetings);
+	return message.replace(/{user\.name}/g, user.name);
+};
+
+randomElement = function(ar) {
+	return ar[Math.floor(Math.random() * ar.length)];
 };
 
 Bot.prototype.onRoomInfo = function(data) {
@@ -112,8 +121,8 @@ Bot.prototype.onNewModerator = function(data) {
 		console.dir(data);
 	}
 	this.ttapi.speak(this.config.messages.newModerator
-			.replace("{user.name}", this.users[data.userid].name)
-			.replace("{room.name}", this.roomInfo.name));
+			.replace(/{user\.name}/g, this.users[data.userid].name)
+			.replace(/{room\.name}/g, this.roomInfo.name));
 };
 
 Bot.bareCommands = [

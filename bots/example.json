@@ -6,7 +6,11 @@
 	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
-		"defaultGreeting": "Hi {user.name}!"
+		"defaultGreetings": [
+			"Hi {user.name}!",
+			"Hello {user.name}",
+			"Hey there {user.name}"
+		],
 		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility."
 	}
 }
