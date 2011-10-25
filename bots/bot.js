@@ -88,9 +88,8 @@ Bot.prototype.onRegistered = function(data) {
 		console.dir(data);
 	}
 	user = data.user[0];
-	if (user.userid == this.config.userid) {
-		this.ttapi.roomInfo(this.onRoomInfo.bind(this));
-	} else {
+	this.ttapi.roomInfo(this.onRoomInfo.bind(this));
+	if (user.userid != this.config.userid) {
 		this.ttapi.speak(this.greeting(user));
 	}
 };
