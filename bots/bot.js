@@ -99,7 +99,8 @@ Bot.prototype.greeting = function(user) {
 	var message = this.greetings[user.userid];
 	if (!message && user.created * 1000 > new Date() - 7 * 24 * 3600 * 1000) {
 		message = randomElement(this.config.messages.newUserGreetings);
-	} else {
+	}
+	if (!message) {
 		message = randomElement(this.config.messages.defaultGreetings);
 	}
 	return message.replace(/{user\.name}/g, user.name);
