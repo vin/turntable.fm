@@ -36,6 +36,7 @@ Bot.prototype.start = function() {
 Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('speak', this.onSpeak.bind(this));
 	this.ttapi.on('registered', this.onRegistered.bind(this));
+	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 };
@@ -95,10 +96,24 @@ Bot.prototype.onRegistered = function(data) {
 };
 
 Bot.prototype.onRoomInfo = function(data) {
+	var self = this;
 	if (this.debug) {
 		console.dir(data);
 	}
 	this.roomInfo = data;
+	this.users = {};
+	this.roomInfo.users.forEach(function(user) {
+		self.users[user.userid] = user;
+	});
+};
+
+Bot.prototype.onNewModerator = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	this.ttapi.speak(this.config.messages.newModerator
+			.replace("{user.name}", this.users[data.userid].name)
+			.replace("{room.name}", this.roomInfo.name));
 };
 
 Bot.bareCommands = [
