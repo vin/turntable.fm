@@ -28,7 +28,6 @@ Bot.prototype.start = function() {
 		replContext.bot = self;
 		self.readGreetings();
 		self.ttapi = new ttapi(self.config.auth, self.config.userid, self.config.roomid);
-		replContext.say = self.ttapi.speak.bind(self.ttapi);
 		self.bindHandlers();
 	});
 };
@@ -75,12 +74,12 @@ Bot.prototype.onSpeak = function(data) {
 };
 
 Bot.prototype.onHelp = function() {
-	this.ttapi.speak(this.config.messages.help.replace(/{room\.name}/g, this.roomInfo.room.name));
+	this.say(this.config.messages.help);
 };
 
 Bot.prototype.onHelpCommands = function() {
-	this.ttapi.speak(
-		'commands: ' + Object.keys(this.speechHandlers).map(function(s) { return "*" + s; })).join(', ');
+	this.say('commands: ' +
+			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; })).join(', ');
 };
 
 Bot.prototype.onRegistered = function(data) {
@@ -88,9 +87,9 @@ Bot.prototype.onRegistered = function(data) {
 		console.dir(data);
 	}
 	user = data.user[0];
-	this.ttapi.roomInfo(this.onRoomInfo.bind(this));
+	this.refreshRoomInfo();
 	if (user.userid != this.config.userid) {
-		this.ttapi.speak(this.greeting(user));
+		this.say(this.greeting(user));
 	}
 };
 
@@ -121,13 +120,31 @@ Bot.prototype.onRoomInfo = function(data) {
 	});
 };
 
+Bot.prototype.refreshRoomInfo = function(cb) {
+	var self = this;
+	this.ttapi.roomInfo(function(data) {
+		self.onRoomInfo.call(self, data);
+		if (cb) cb.call(self, data);
+	});
+};
+
+Bot.prototype.say = function(msg) {
+	if (!msg) return;
+	var message = msg
+		.replace(/{room\.name}/g, this.roomInfo.room.name)
+		.replace(/{bot\.name}/g, this.users[this.config.userid].name);
+	if (this.debug) {
+		console.log("say: %s", message);
+	}
+	this.ttapi.speak(message);
+};
+
 Bot.prototype.onNewModerator = function(data) {
 	if (this.debug) {
 		console.dir(data);
 	}
-	this.ttapi.speak(this.config.messages.newModerator
-			.replace(/{user\.name}/g, this.users[data.userid].name)
-			.replace(/{room\.name}/g, this.roomInfo.name));
+	this.say(this.config.messages.newModerator
+		.replace(/{user\.name}/g, this.users[data.userid].name));
 };
 
 Bot.bareCommands = [
