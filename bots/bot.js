@@ -1,9 +1,11 @@
 // Copyright 2011 Vineet Kumar
 
-var fs = require('fs');
-var repl = require('repl');
-var path = require('path');
-var ttapi = require('ttapi');
+var imports = {
+	fs: require('fs'),
+	repl: require('repl'),
+	path: require('path'),
+	ttapi: require('ttapi'),
+};
 
 Bot = function(configFile) {
 	this.ttapi = null;
@@ -18,17 +20,20 @@ Bot.usage = function() {
 	throw "Usage: node " + process.argv[1] + " <config.json>";
 };
 
-Bot.prototype.start = function() {
+Bot.prototype.start = function(cb) {
 	var self = this;
-	fs.readFile(self.configFile, 'utf8', function(err, data) {
+	imports.fs.readFile(self.configFile, 'utf8', function(err, data) {
 		if (err) throw err;
 		self.config = JSON.parse(data);
-		var prompt = path.basename(self.configFile, path.extname(self.configFile));
-		var replContext = repl.start(prompt + "> ").context
-		replContext.bot = self;
+		var prompt = imports.path.basename(self.configFile, imports.path.extname(self.configFile));
+		if (!self.config.noRepl) {
+			var replContext = imports.repl.start(prompt + "> ").context
+			replContext.bot = self;
+		}
 		self.readGreetings();
-		self.ttapi = new ttapi(self.config.auth, self.config.userid, self.config.roomid);
+		self.ttapi = new imports.ttapi(self.config.auth, self.config.userid, self.config.roomid);
 		self.bindHandlers();
+		if (cb) cb();
 	});
 };
 
@@ -42,8 +47,8 @@ Bot.prototype.bindHandlers = function() {
 
 Bot.prototype.readGreetings = function() {
 	var self = this;
-	var greetingsPath = path.join(path.dirname(process.argv[2]), self.config.greetings_filename)
-	fs.readFile(greetingsPath, 'utf8', function(err, data) {
+	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[2]), self.config.greetings_filename)
+	imports.fs.readFile(greetingsPath, 'utf8', function(err, data) {
 		if (err) throw err;
 		self.greetings = JSON.parse(data);
 		console.log('loaded %d greetings', Object.keys(self.greetings).length);
@@ -152,6 +157,7 @@ Bot.bareCommands = [
 ];
 
 exports.Bot = Bot;
+exports.imports = imports;
 
 if (process.argv.length > 2) {
 	new Bot(process.argv[2]).start();
