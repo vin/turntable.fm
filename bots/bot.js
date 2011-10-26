@@ -23,20 +23,19 @@ Bot.usage = function() {
 };
 
 Bot.prototype.start = function(cb) {
-	var self = this;
-	imports.fs.readFile(self.configFile, 'utf8', function(err, data) {
+	imports.fs.readFile(this.configFile, 'utf8', function(err, data) {
 		if (err) throw err;
-		self.config = JSON.parse(data);
-		var prompt = imports.path.basename(self.configFile, imports.path.extname(self.configFile));
-		if (!self.config.noRepl) {
+		this.config = JSON.parse(data);
+		var prompt = imports.path.basename(this.configFile, imports.path.extname(this.configFile));
+		if (!this.config.noRepl) {
 			var replContext = imports.repl.start(prompt + "> ").context
-			replContext.bot = self;
+			replContext.bot = this;
 		}
-		self.readGreetings();
-		self.ttapi = new imports.ttapi(self.config.auth, self.config.userid, self.config.roomid);
-		self.bindHandlers();
+		this.readGreetings();
+		this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
+		this.bindHandlers();
 		if (cb) cb();
-	});
+	}.bind(this));
 };
 
 Bot.prototype.bindHandlers = function() {
@@ -55,13 +54,12 @@ Bot.prototype.bindHandlers = function() {
 };
 
 Bot.prototype.readGreetings = function() {
-	var self = this;
-	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[2]), self.config.greetings_filename)
+	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.greetings_filename)
 	imports.fs.readFile(greetingsPath, 'utf8', function(err, data) {
 		if (err) throw err;
-		self.greetings = JSON.parse(data);
-		console.log('loaded %d greetings', Object.keys(self.greetings).length);
-	});
+		this.greetings = JSON.parse(data);
+		console.log('loaded %d greetings', Object.keys(this.greetings).length);
+	}.bind(this));
 };
 
 /**
@@ -137,23 +135,21 @@ randomElement = function(ar) {
 };
 
 Bot.prototype.onRoomInfo = function(data) {
-	var self = this;
 	if (this.debug) {
 		console.dir(data);
 	}
 	this.roomInfo = data;
 	this.users = {};
 	this.roomInfo.users.forEach(function(user) {
-		self.users[user.userid] = user;
-	});
+		this.users[user.userid] = user;
+	}, this);
 };
 
 Bot.prototype.refreshRoomInfo = function(cb) {
-	var self = this;
 	this.ttapi.roomInfo(function(data) {
-		self.onRoomInfo.call(self, data);
-		if (cb) cb.call(self, data);
-	});
+		this.onRoomInfo.call(this, data);
+		if (cb) cb.call(this, data);
+	}.bind(this));
 };
 
 Bot.prototype.onDeregister = function(data) {
