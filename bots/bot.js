@@ -44,6 +44,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('registered', this.onRegistered.bind(this));
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
+	this.ttapi.on('deregistered', this.onDeregister.bind(this));
 	this.ttapi.on('add_dj', this.onAddDj.bind(this));
 	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
 	this.ttapi.on('newsong', this.onNewSong.bind(this));
@@ -153,6 +154,18 @@ Bot.prototype.refreshRoomInfo = function(cb) {
 		self.onRoomInfo.call(self, data);
 		if (cb) cb.call(self, data);
 	});
+};
+
+Bot.prototype.onDeregister = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	if (data.userid == this.config.userid) {
+		this.roomInfo = null;
+		this.users = {};
+	} else {
+		this.refreshRoomInfo();
+	}
 };
 
 Bot.prototype.say = function(msg) {
