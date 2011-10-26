@@ -15,6 +15,7 @@ Bot = function(configFile) {
 	this.logChats = false;
 	this.speechHandlers = {};
 	this.djs = {};
+	this.votes = null;
 };
 
 Bot.usage = function() {
@@ -47,6 +48,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
 	this.ttapi.on('newsong', this.onNewSong.bind(this));
 	this.ttapi.on('nosong', this.onNoSong.bind(this));
+	this.ttapi.on('update_votes', this.onUpdateVotes.bind(this));
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 };
@@ -210,22 +212,32 @@ Bot.prototype.onNewSong = function(data) {
 		console.dir(data);
 	}
 	var song = data.room.metadata.current_song;
-	var user = data.room.metadata.current_dj;
-	var dj = this.djs[user] || (this.djs[user] = new DjStats(user));
-	this.djs[user].play(song);
+	var userid = data.room.metadata.current_dj;
+	var dj = this.djs[userid] || (this.djs[userid] = new DjStats(this.users[userid]));
+	this.djs[userid].play(song);
 	this.finishSong(song);
 };
 
 Bot.prototype.finishSong = function(newSong) {
-	if (this.lastSong) {
+	if (this.lastSong && this.votes) {
 		var message = this.config.messages.songSummary;
 		this.say(message
 			.replace(/{user\.name}/g, this.users[this.lastSong.djid].name)
+			.replace(/{awesomes}/g, this.votes.upvotes)
+			.replace(/{lames}/g, this.votes.downvotes)
 			.replace(/{song}/g, this.lastSong.metadata.song)
 			.replace(/{artist}/g, this.lastSong.metadata.artist)
 			.replace(/{album}/g, this.lastSong.metadata.album));
 	}
 	this.lastSong = newSong;
+	this.votes = null;
+};
+
+Bot.prototype.onUpdateVotes = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	this.votes = data.room.metadata;
 };
 
 Bot.prototype.onNoSong = function(data) {
