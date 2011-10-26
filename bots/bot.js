@@ -14,6 +14,7 @@ Bot = function(configFile) {
 	this.greetings = {};
 	this.logChats = false;
 	this.speechHandlers = {};
+	this.djs = {};
 };
 
 Bot.usage = function() {
@@ -41,6 +42,11 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('speak', this.onSpeak.bind(this));
 	this.ttapi.on('registered', this.onRegistered.bind(this));
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
+	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
+	this.ttapi.on('add_dj', this.onAddDj.bind(this));
+	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
+	this.ttapi.on('newsong', this.onNewSong.bind(this));
+	this.ttapi.on('nosong', this.onNoSong.bind(this));
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 };
@@ -92,8 +98,8 @@ Bot.prototype.onRegistered = function(data) {
 		console.dir(data);
 	}
 	user = data.user[0];
-	this.refreshRoomInfo();
 	if (user.userid != this.config.userid) {
+		this.refreshRoomInfo();
 		this.say(this.greeting(user));
 	}
 };
@@ -108,6 +114,20 @@ Bot.prototype.greeting = function(user) {
 	}
 	return message.replace(/{user\.name}/g, user.name);
 };
+
+Bot.prototype.djAnnouncement = function(user) {
+	var message;
+	if (user.points == 0) {
+		message = randomElement(this.config.messages.newDjAnnouncements);
+	} else {
+		message = randomElement(this.config.messages.djAnnouncements);
+	}
+	return message
+		.replace(/{user\.name}/g, user.name)
+		.replace(/{user\.points}/g, user.points)
+		.replace(/{user\.fans}/g, user.fans);
+};
+
 
 randomElement = function(ar) {
 	return ar[Math.floor(Math.random() * ar.length)];
@@ -152,9 +172,88 @@ Bot.prototype.onNewModerator = function(data) {
 		.replace(/{user\.name}/g, this.users[data.userid].name));
 };
 
+Bot.prototype.onAddDj = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	var user = data.user[0];
+	this.djs[user.userid] = new DjStats(user);
+	this.say(this.djAnnouncement(user));
+};
+
+Bot.prototype.djSummary = function(stats) {
+	var message = randomElement(this.config.messages.djSummaries);
+	return message
+		.replace(/{user\.name}/g, stats.user.name)
+		.replace(/{user\.points}/g, stats.user.points)
+		.replace(/{lames}/g, stats.lames)
+		.replace(/{gain}/g, stats.gain)
+		.replace(/{plays}/g, stats.plays);
+
+};
+
+Bot.prototype.onRemDj = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	var user = data.user[0];
+	var stats = this.djs[user.userid];
+	if (stats) {
+		stats.update(user);
+		delete this.djs[user.userid];
+		this.say(this.djSummary(stats));
+	}
+};
+
+Bot.prototype.onNewSong = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	var song = data.room.metadata.current_song;
+	var user = data.room.metadata.current_dj;
+	var dj = this.djs[user] || (this.djs[user] = new DjStats(user));
+	this.djs[user].play(song);
+	this.finishSong(song);
+};
+
+Bot.prototype.finishSong = function(newSong) {
+	if (this.lastSong) {
+		var message = this.config.messages.songSummary;
+		this.say(message
+			.replace(/{user\.name}/g, this.users[this.lastSong.djid].name)
+			.replace(/{song}/g, this.lastSong.metadata.song)
+			.replace(/{artist}/g, this.lastSong.metadata.artist)
+			.replace(/{album}/g, this.lastSong.metadata.album));
+	}
+	this.lastSong = newSong;
+};
+
+Bot.prototype.onNoSong = function(data) {
+	if (this.debug) {
+		console.dir(data);
+	}
+	this.finishSong(null);
+};
+
 Bot.bareCommands = [
 	'help',
 ];
+
+DjStats = function(user) {
+	this.user = user;
+	this.lames = 0;
+	this.plays = 0;
+	this.gain = 0;
+};
+
+DjStats.prototype.update = function(user) {
+	this.gain += (user.points - this.user.points);
+	this.user = user;
+}
+
+DjStats.prototype.play = function(song) {
+	++this.plays;
+};
 
 exports.Bot = Bot;
 exports.imports = imports;

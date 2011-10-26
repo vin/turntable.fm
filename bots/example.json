@@ -15,6 +15,18 @@
 			"Welcome to turntable {user.name}!",
 			"Hi {user.name}, welcome to turntable!"
 		],
-		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility."
+		"djAnnouncements": [
+			"{user.name} just started DJing with {user.points} points and {user.fans} fans.",
+		],
+		"newDjAnnouncements": [
+			"Now the real fun begins, {user.name}!",
+			"Show some love for {user.name}'s first time on the decks!"
+		],
+		"djSummaries": [
+			"{user.name} played {plays} songs, gaining {gain} points (and got lamed {lames} times).",
+			"Thanks for the tunes {user.name}.  You played {plays} songs and got {gain} points and {lames} lames."
+		],
+		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility.",
+		"songSummary": "{song} by {artist}"
 	}
 }
