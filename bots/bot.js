@@ -91,7 +91,7 @@ Bot.prototype.onHelp = function() {
 
 Bot.prototype.onHelpCommands = function() {
 	this.say('commands: ' +
-			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; })).join(', ');
+			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; }).join(', '));
 };
 
 Bot.prototype.onRegistered = function(data) {
