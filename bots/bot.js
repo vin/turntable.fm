@@ -15,7 +15,7 @@ Bot = function(configFile) {
 	this.logChats = false;
 	this.speechHandlers = {};
 	this.djs = {};
-	this.votes = null;
+	this.currentSong = null;
 };
 
 Bot.usage = function() {
@@ -151,6 +151,12 @@ Bot.prototype.onRoomInfo = function(data) {
 		this.roomInfo.users.forEach(function(user) {
 			this.users[user.userid] = user;
 		}, this);
+		if (!this.currentSong) {
+			this.currentSong = new SongStats(
+					data.room.metadata.current_song,
+					this.users[data.room.metadata.current_dj]);
+			this.currentSong.updateVotes(data.room.metadata);
+		}
 	}
 };
 
@@ -235,41 +241,57 @@ Bot.prototype.onNewSong = function(data) {
 	var userid = data.room.metadata.current_dj;
 	var dj = this.djs[userid] || (this.djs[userid] = new DjStats(this.users[userid]));
 	this.djs[userid].play(song);
-	this.finishSong(song);
+	this.finishSong();
+	this.currentSong = new SongStats(song, users[song.djid]);
 };
 
-Bot.prototype.finishSong = function(newSong) {
-	if (this.lastSong && this.votes) {
+Bot.prototype.finishSong = function() {
+	if (this.currentSong) {
 		var message = this.config.messages.songSummary;
 		this.say(message
-			.replace(/{user\.name}/g, this.users[this.lastSong.djid].name)
-			.replace(/{awesomes}/g, this.votes.upvotes)
-			.replace(/{lames}/g, this.votes.downvotes)
-			.replace(/{song}/g, this.lastSong.metadata.song)
-			.replace(/{artist}/g, this.lastSong.metadata.artist)
-			.replace(/{album}/g, this.lastSong.metadata.album));
+			.replace(/{user\.name}/g, this.currentSong.dj.name)
+			.replace(/{awesomes}/g, this.currentSong.votes.upvotes)
+			.replace(/{lames}/g, this.currentSong.votes.downvotes)
+			.replace(/{song}/g, this.currentSong.song.metadata.song)
+			.replace(/{artist}/g, this.currentSong.song.metadata.artist)
+			.replace(/{album}/g, this.currentSong.song.metadata.album));
 	}
-	this.lastSong = newSong;
-	this.votes = null;
 };
 
 Bot.prototype.onUpdateVotes = function(data) {
 	if (this.debug) {
 		console.dir(data);
 	}
-	this.votes = data.room.metadata;
+	if (this.currentSong) {
+		this.currentSong.updateVotes(data.room.metadata);
+	} else {
+		this.refreshRoomInfo();
+	}
 };
 
 Bot.prototype.onNoSong = function(data) {
 	if (this.debug) {
 		console.dir(data);
 	}
-	this.finishSong(null);
+	this.finishSong();
+	this.currentSong = null;
 };
 
 Bot.bareCommands = [
 	'help',
 ];
+
+SongStats = function(song, dj) {
+	this.song = song;
+	this.votes = {};
+	this.dj = dj;
+};
+
+SongStats.prototype.updateVotes = function(votes) {
+	this.votes.upvotes = votes.upvotes;
+	this.votes.downvotes = votes.downvotes;
+	this.votes.votelog = votes.votelog;
+};
 
 DjStats = function(user) {
 	this.user = user;
