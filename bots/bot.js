@@ -53,6 +53,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('update_votes', this.onUpdateVotes.bind(this));
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
+	this.speechHandlers['bonus'] = this.onBonus.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -94,6 +95,10 @@ Bot.prototype.onHelp = function() {
 Bot.prototype.onHelpCommands = function() {
 	this.say('commands: ' +
 			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; }).join(', '));
+};
+
+Bot.prototype.onBonus = function() {
+	this.ttapi.vote('up');
 };
 
 Bot.prototype.onRegistered = function(data) {
