@@ -142,9 +142,11 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 	this.roomInfo = data;
 	this.users = {};
-	this.roomInfo.users.forEach(function(user) {
-		this.users[user.userid] = user;
-	}, this);
+	if (data.success) {
+		this.roomInfo.users.forEach(function(user) {
+			this.users[user.userid] = user;
+		}, this);
+	}
 };
 
 Bot.prototype.refreshRoomInfo = function(cb) {
