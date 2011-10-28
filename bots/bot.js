@@ -252,7 +252,7 @@ Bot.prototype.onNewSong = function(data) {
 	var dj = this.djs[userid] || (this.djs[userid] = new DjStats(this.users[userid]));
 	this.djs[userid].play(song);
 	this.finishSong();
-	this.currentSong = new SongStats(song, users[song.djid]);
+	this.currentSong = new SongStats(song, this.users[song.djid]);
 };
 
 Bot.prototype.finishSong = function() {
