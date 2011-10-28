@@ -98,8 +98,20 @@ Bot.prototype.onHelpCommands = function() {
 			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; }).join(', '));
 };
 
-Bot.prototype.onBonus = function() {
-	this.ttapi.vote('up');
+Bot.prototype.onBonus = function(text, user) {
+	if (!this.currentSong) {
+	       return;
+	}
+	if (this.currentSong.bonusBy) {
+		this.say(this.config.messages.bonusAlreadyUsed
+				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name));
+	} else {
+		this.ttapi.vote('up');
+		this.currentSong.bonusBy = user;
+		this.say(this.config.messages.bonus
+				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name)
+				.replace(/{dj.name}/g, this.users[this.roomInfo.room.metadata.current_dj]));
+	}
 };
 
 Bot.prototype.onAlbum = function() {
