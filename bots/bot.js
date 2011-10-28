@@ -54,6 +54,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 	this.speechHandlers['bonus'] = this.onBonus.bind(this);
+	this.speechHandlers['album'] = this.onAlbum.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -99,6 +100,15 @@ Bot.prototype.onHelpCommands = function() {
 
 Bot.prototype.onBonus = function() {
 	this.ttapi.vote('up');
+};
+
+Bot.prototype.onAlbum = function() {
+	if (this.currentSong) {
+		this.say(this.config.messages.album
+				.replace(/{song}/g, this.currentSong.song.metadata.song)
+				.replace(/{artist}/g, this.currentSong.song.metadata.artist)
+				.replace(/{album}/g, this.currentSong.song.metadata.album));
+	}
 };
 
 Bot.prototype.onRegistered = function(data) {
