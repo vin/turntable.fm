@@ -31,6 +31,8 @@ Bot.prototype.start = function(cb) {
 			var replContext = imports.repl.start(prompt + "> ").context
 			replContext.bot = this;
 		}
+		this.debug = this.config.debug;
+		this.mute = this.config.mute;
 		this.readGreetings();
 		this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
 		this.bindHandlers();
@@ -172,7 +174,9 @@ Bot.prototype.say = function(msg) {
 	if (this.debug) {
 		console.log("say: %s", message);
 	}
-	this.ttapi.speak(message);
+	if (!this.mute) {
+		this.ttapi.speak(message);
+	}
 };
 
 Bot.prototype.onNewModerator = function(data) {
