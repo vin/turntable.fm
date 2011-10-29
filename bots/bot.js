@@ -123,6 +123,18 @@ Bot.prototype.onAlbum = function() {
 	}
 };
 
+/**
+  * Pulls the command off the front of a line of text.
+  * @return a 2-element list of [command, rest]
+  */
+Bot.splitCommand = function(text) {
+	var i = text.search(/\s/);
+	if (i == -1) {
+		return [text, ''];
+	}
+	return [text.substr(0, i), text.substr(i).trimLeft()];
+};
+
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
 		console.dir(data);
