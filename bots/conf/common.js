@@ -4,6 +4,7 @@ exports.conf = {
 	"roomid": "fill this in from TURNTABLE_ROOMID in view-source:turntable.fm/$ROOM",
 	"greetings_filename": "greetings.json",
 	"activity_filename": "activity.json",
+	"usernames_filename": "usernames.json",
 	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",

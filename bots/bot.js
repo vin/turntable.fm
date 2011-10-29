@@ -16,7 +16,7 @@ Bot = function(configName) {
 	this.logChats = false;
 	this.speechHandlers = {};
 	this.users = {};
-	this.usersByName = {};
+	this.useridsByName = {};
 	this.activity = {};
 	this.djs = {};
 	this.currentSong = null;
@@ -39,6 +39,7 @@ Bot.prototype.onInitConfig = function(cb, err) {
 	this.mute = this.config.mute;
 	this.readGreetings();
 	this.readActivity();
+	this.readUsernames();
 	this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
 	this.bindHandlers();
 	if (cb) cb();
@@ -66,23 +67,57 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['last'] = this.onLast.bind(this);
 };
 
-Bot.prototype.readGreetings = function() {
-	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[1]), this.config.greetings_filename)
-	imports.fs.readFile(greetingsPath, 'utf8', function(err, data) {
+Bot.prototype.readData = function(path, cb) {
+	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
+	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
 		if (err) throw err;
-		this.greetings = JSON.parse(data);
+		if (cb) cb(JSON.parse(data));
+	}.bind(this));
+};
+
+Bot.prototype.writeData = function(path, data, cb) {
+	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
+	imports.fs.writeFile(fullpath, JSON.stringify(data), function(err) {
+		if (err) throw err;
+		if (cb) cb();
+	}.bind(this));
+};
+
+Bot.prototype.readGreetings = function() {
+	this.readData(this.config.greetings_filename, function(data) {
+		this.greetings = data;
 		console.log('loaded %d greetings', Object.keys(this.greetings).length);
 	}.bind(this));
 };
 
 Bot.prototype.readActivity = function() {
-	var activityPath = imports.path.join(imports.path.dirname(process.argv[1]), this.config.activity_filename)
-	imports.fs.readFile(activityPath, 'utf8', function(err, data) {
-		if (err) throw err;
-		this.activity = JSON.parse(data);
+	this.readData(this.config.activity_filename, function(data) {
+		this.activity = data;
 		console.log('loaded %d activity records', Object.keys(this.activity).length);
 	}.bind(this));
 };
+
+Bot.prototype.writeActivity = function() {
+	if (this.config.activity_filename) {
+		this.writeData(this.config.usernames_filename, this.activity,
+			console.log.bind(this, 'Activity data saved to %s', this.config.activity_filename));
+	};
+};
+
+Bot.prototype.readUsernames = function() {
+	this.readData(this.config.usernames_filename, function(data) {
+		this.useridsByName = data;
+		console.log('loaded %d usernames', Object.keys(this.useridsByName).length);
+	}.bind(this));
+};
+
+Bot.prototype.writeUsernames = function() {
+	if (this.config.usernames_filename) {
+		this.writeData(this.config.usernames_filename, this.useridsByName,
+			console.log.bind(this, 'Username map saved to %s', this.config.usernames_filename));
+	};
+};
+
 
 /**
   * @param {{name: string, text: string}} data return by ttapi
@@ -161,9 +196,9 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 		return;
 	}
 	var last = null;
-	var user = this.usersByName[subject_name];
-	if (user) {
-		last = this.activity[user.userid];
+	var userid = this.useridsByName[subject_name];
+	if (userid) {
+		last = this.activity[userid];
 	}
 	if (last) {
 		var age_ms = new Date() - new Date(last);
@@ -222,12 +257,12 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 	this.roomInfo = data;
 	this.users = {};
-	this.usersByName = {};
 	if (data.success) {
 		this.roomInfo.users.forEach(function(user) {
 			this.users[user.userid] = user;
-			this.usersByName[user.name] = user;
+			this.useridsByName[user.name] = user.userid;
 		}, this);
+		this.writeUsernames();
 		if (!this.currentSong) {
 			this.currentSong = new SongStats(
 					data.room.metadata.current_song,
@@ -361,13 +396,7 @@ Bot.bareCommands = [
 
 Bot.prototype.recordActivity = function(userid) {
 	this.activity[userid] = new Date();
-	if (this.config.activity_filename) {
-		var activityPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.activity_filename)
-		imports.fs.writeFile(activityPath, JSON.stringify(this.activity), function(err) {
-			if (err) throw err;
-			console.log('Activity data saved to %s', activityPath);
-		});
-	};
+	this.writeActivity();
 };
 
 SongStats = function(song, dj) {
