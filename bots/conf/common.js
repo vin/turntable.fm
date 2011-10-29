@@ -1,4 +1,4 @@
-{
+exports.conf = {
 	"auth": "fill this in your turntableUserAuth cookie",
 	"userid": "fill this in from your turntableUserId cookie",
 	"roomid": "fill this in from TURNTABLE_ROOMID in view-source:turntable.fm/$ROOM",
@@ -35,4 +35,4 @@
 		"lastActivity": "It's been {age} since I saw {user.name}",
 		"lastActivityUnknown": "Hmm, I haven't seen {user.name}"
 	}
-}
+};

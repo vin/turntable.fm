@@ -5,11 +5,12 @@ var imports = {
 	repl: require('repl'),
 	path: require('path'),
 	ttapi: require('ttapi'),
+	conf: require('node-config'),
 };
 
-Bot = function(configFile) {
+Bot = function(configName) {
 	this.ttapi = null;
-	this.configFile = configFile || process.argv[2] || Bot.usage();
+	this.configName = configName || process.argv[2] || Bot.usage();
 	this.config = {};
 	this.greetings = {};
 	this.logChats = false;
@@ -24,26 +25,27 @@ Bot = function(configFile) {
 };
 
 Bot.usage = function() {
-	throw "Usage: node " + process.argv[1] + " <config.json>";
+	throw "Usage: node " + process.argv[1] + " <config name>";
+};
+
+Bot.prototype.onInitConfig = function(cb, err) {
+	if (err) throw err;
+	this.config = imports.conf;
+	if (!this.config.noRepl) {
+		var replContext = imports.repl.start(this.configName + "> ").context
+		replContext.bot = this;
+	}
+	this.debug = this.config.debug;
+	this.mute = this.config.mute;
+	this.readGreetings();
+	this.readActivity();
+	this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
+	this.bindHandlers();
+	if (cb) cb();
 };
 
 Bot.prototype.start = function(cb) {
-	imports.fs.readFile(this.configFile, 'utf8', function(err, data) {
-		if (err) throw err;
-		this.config = JSON.parse(data);
-		var prompt = imports.path.basename(this.configFile, imports.path.extname(this.configFile));
-		if (!this.config.noRepl) {
-			var replContext = imports.repl.start(prompt + "> ").context
-			replContext.bot = this;
-		}
-		this.debug = this.config.debug;
-		this.mute = this.config.mute;
-		this.readGreetings();
-		this.readActivity();
-		this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
-		this.bindHandlers();
-		if (cb) cb();
-	}.bind(this));
+	imports.conf.initConfig(this.onInitConfig.bind(this, cb), this.configName);
 };
 
 Bot.prototype.bindHandlers = function() {
