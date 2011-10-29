@@ -99,7 +99,7 @@ Bot.prototype.readActivity = function() {
 
 Bot.prototype.writeActivity = function() {
 	if (this.config.activity_filename) {
-		this.writeData(this.config.usernames_filename, this.activity,
+		this.writeData(this.config.activity_filename, this.activity,
 			console.log.bind(this, 'Activity data saved to %s', this.config.activity_filename));
 	};
 };
