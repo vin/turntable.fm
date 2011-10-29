@@ -67,7 +67,7 @@ Bot.prototype.bindHandlers = function() {
 };
 
 Bot.prototype.readGreetings = function() {
-	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.greetings_filename)
+	var greetingsPath = imports.path.join(imports.path.dirname(process.argv[1]), this.config.greetings_filename)
 	imports.fs.readFile(greetingsPath, 'utf8', function(err, data) {
 		if (err) throw err;
 		this.greetings = JSON.parse(data);
@@ -76,7 +76,7 @@ Bot.prototype.readGreetings = function() {
 };
 
 Bot.prototype.readActivity = function() {
-	var activityPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.activity_filename)
+	var activityPath = imports.path.join(imports.path.dirname(process.argv[1]), this.config.activity_filename)
 	imports.fs.readFile(activityPath, 'utf8', function(err, data) {
 		if (err) throw err;
 		this.activity = JSON.parse(data);
