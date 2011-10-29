@@ -14,8 +14,13 @@ Bot = function(configFile) {
 	this.greetings = {};
 	this.logChats = false;
 	this.speechHandlers = {};
+	this.users = {};
+	this.usersByName = {};
+	this.activity = {};
 	this.djs = {};
 	this.currentSong = null;
+	this.greetings = {};
+	this.activity = {};
 };
 
 Bot.usage = function() {
@@ -34,6 +39,7 @@ Bot.prototype.start = function(cb) {
 		this.debug = this.config.debug;
 		this.mute = this.config.mute;
 		this.readGreetings();
+		this.readActivity();
 		this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
 		this.bindHandlers();
 		if (cb) cb();
@@ -55,6 +61,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 	this.speechHandlers['bonus'] = this.onBonus.bind(this);
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
+	this.speechHandlers['last'] = this.onLast.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -63,6 +70,15 @@ Bot.prototype.readGreetings = function() {
 		if (err) throw err;
 		this.greetings = JSON.parse(data);
 		console.log('loaded %d greetings', Object.keys(this.greetings).length);
+	}.bind(this));
+};
+
+Bot.prototype.readActivity = function() {
+	var activityPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.activity_filename)
+	imports.fs.readFile(activityPath, 'utf8', function(err, data) {
+		if (err) throw err;
+		this.activity = JSON.parse(data);
+		console.log('loaded %d activity records', Object.keys(this.activity).length);
 	}.bind(this));
 };
 
@@ -76,6 +92,7 @@ Bot.prototype.onSpeak = function(data) {
 	if (this.logChats) {
 		console.log('chat: %s: %s', data.name, data.text);
 	}
+	this.recordActivity(data.userid);
         var words = data.text.split(/\s+/);
         var command = words[0].toLowerCase();
         if (command.match(/^[!*\/]/)) {
@@ -135,6 +152,28 @@ Bot.splitCommand = function(text) {
 	return [text.substr(0, i), text.substr(i).trimLeft()];
 };
 
+Bot.prototype.onLast = function(text, unused_userid, unused_username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var last = null;
+	var user = this.usersByName[subject_name];
+	if (user) {
+		last = this.activity[user.userid];
+	}
+	if (last) {
+		var age_ms = new Date() - new Date(last);
+		var age_h = Math.floor(age_ms / 1000 / 3600);
+		this.say(this.config.messages.lastActivity
+				.replace(/{user\.name}/g, subject_name)
+				.replace(/{age}/g, age_h + " hours"));
+	} else {
+		this.say(this.config.messages.lastActivityUnknown.replace(/{user\.name}/g, subject_name));
+	}
+};
+
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
 		console.dir(data);
@@ -181,9 +220,11 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 	this.roomInfo = data;
 	this.users = {};
+	this.usersByName = {};
 	if (data.success) {
 		this.roomInfo.users.forEach(function(user) {
 			this.users[user.userid] = user;
+			this.usersByName[user.name] = user;
 		}, this);
 		if (!this.currentSong) {
 			this.currentSong = new SongStats(
@@ -296,6 +337,7 @@ Bot.prototype.onUpdateVotes = function(data) {
 	if (this.debug) {
 		console.dir(data);
 	}
+	this.recordActivity(data.room.metadata.votelog[0][0]);
 	if (this.currentSong) {
 		this.currentSong.updateVotes(data.room.metadata);
 	} else {
@@ -314,6 +356,17 @@ Bot.prototype.onNoSong = function(data) {
 Bot.bareCommands = [
 	'help',
 ];
+
+Bot.prototype.recordActivity = function(userid) {
+	this.activity[userid] = new Date();
+	if (this.config.activity_filename) {
+		var activityPath = imports.path.join(imports.path.dirname(process.argv[2]), this.config.activity_filename)
+		imports.fs.writeFile(activityPath, JSON.stringify(this.activity), function(err) {
+			if (err) throw err;
+			console.log('Activity data saved to %s', activityPath);
+		});
+	};
+};
 
 SongStats = function(song, dj) {
 	this.song = song;

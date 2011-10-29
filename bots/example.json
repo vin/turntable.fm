@@ -3,6 +3,7 @@
 	"userid": "fill this in from your turntableUserId cookie",
 	"roomid": "fill this in from TURNTABLE_ROOMID in view-source:turntable.fm/$ROOM",
 	"greetings_filename": "greetings.json",
+	"activity_filename": "activity.json",
 	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
@@ -30,6 +31,8 @@
 		"songSummary": "{song} by {artist}",
 		"album": "{song} is on {album}",
 		"bonus": "{dj.name} just got a bonus from {user.name}",
-		"bonusAlreadyUsed": "Sorry, bonus already used by {user.name}.  My head is already boppin!"
+		"bonusAlreadyUsed": "Sorry, bonus already used by {user.name}.  My head is already boppin!",
+		"lastActivity": "It's been {age} since I saw {user.name}",
+		"lastActivityUnknown": "Hmm, I haven't seen {user.name}"
 	}
 }
