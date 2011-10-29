@@ -395,6 +395,7 @@ Bot.bareCommands = [
 ];
 
 Bot.prototype.recordActivity = function(userid) {
+	if (userid == this.config.userid) return;
 	this.activity[userid] = new Date();
 	this.writeActivity();
 };
