@@ -85,7 +85,7 @@ Bot.prototype.onSpeak = function(data) {
         }
         var handler = this.speechHandlers[command];
         if (handler) {
-                handler(data.text, data.name);
+                handler(data.text, data.userid, data.name);
         }
 };
 
@@ -98,7 +98,7 @@ Bot.prototype.onHelpCommands = function() {
 			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; }).join(', '));
 };
 
-Bot.prototype.onBonus = function(text, user) {
+Bot.prototype.onBonus = function(text, userid, username) {
 	if (!this.currentSong) {
 	       return;
 	}
@@ -107,10 +107,10 @@ Bot.prototype.onBonus = function(text, user) {
 				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name));
 	} else {
 		this.ttapi.vote('up');
-		this.currentSong.bonusBy = user;
+		this.currentSong.bonusBy = userid;
 		this.say(this.config.messages.bonus
 				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name)
-				.replace(/{dj.name}/g, this.users[this.roomInfo.room.metadata.current_dj]));
+				.replace(/{dj.name}/g, this.users[this.roomInfo.room.metadata.current_dj].name));
 	}
 };
 
@@ -119,7 +119,7 @@ Bot.prototype.onAlbum = function() {
 		this.say(this.config.messages.album
 				.replace(/{song}/g, this.currentSong.song.metadata.song)
 				.replace(/{artist}/g, this.currentSong.song.metadata.artist)
-				.replace(/{album}/g, this.currentSong.song.metadata.album));
+				.replace(/{album}/g, this.currentSong.song.metadata.album || "(unknown)"));
 	}
 };
 
