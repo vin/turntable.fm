@@ -22,8 +22,7 @@ Bot = function(configName) {
 	this.currentSong = null;
 	this.greetings = {};
 	this.activity = {};
-	this.djList = [];
-	this.listActive = false;
+	this.djList = {active: false, list: []};
 };
 
 Bot.usage = function() {
@@ -69,12 +68,20 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['last'] = this.onLast.bind(this);
 	this.speechHandlers['list'] = this.onList.bind(this);
 	this.speechHandlers['addme'] = this.onAddme.bind(this);
+	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 };
 
-Bot.prototype.readData = function(path, cb) {
+Bot.prototype.readData = function(path, cb, errCb) {
 	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
 	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
-		if (err) throw err;
+		if (err) {
+			if (errCb) {
+				errCb(err);
+				return;
+			} else {
+				throw err;
+			}
+		}
 		var parsed = null;
 		try {
 			parsed = JSON.parse(data);
@@ -128,6 +135,24 @@ Bot.prototype.writeUsernames = function() {
 	};
 };
 
+Bot.prototype.readDjList = function() {
+	this.djList = {active: false, list: []};
+	if (this.roomInfo.room) {
+		var filename = this.config.djlist_filename.replace(/{roomid}/g, this.roomInfo.room.roomid);
+		var onData = function(data) {
+			this.djList = data;
+			console.log('loaded dj list: %s', this.djList);
+		}.bind(this);
+		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', this.roomInfo.room.roomid);
+		this.readData(filename, onData, onErr);
+	}
+};
+
+Bot.prototype.writeDjList = function() {
+	var filename = this.config.djlist_filename.replace(/{roomid}/g, this.roomInfo.room.roomid);
+	this.writeData(filename, this.djList,
+		console.log.bind(this, 'DJ list saved to %s', filename));
+};
 
 /**
   * @param {{name: string, text: string}} data return by ttapi
@@ -226,33 +251,48 @@ Bot.prototype.lookupUsername = function(userid) {
 };
 
 Bot.prototype.onList = function(text, userid, username) {
-	if (!this.listActive) {
+	if (!this.djList.active) {
 		this.say(this.config.messages.listInactive);
 		return;
 	}
-	if (this.djList.length) {
+	if (this.djList.list.length) {
 		this.say(this.config.messages.list
-				.replace(/{list}/g, this.djList.map(this.lookupUsername.bind(this)).join(', ')));
+				.replace(/{list}/g, this.djList.list.map(this.lookupUsername.bind(this)).join(', ')));
 	} else {
 		this.say(this.config.messages.listEmpty);
 	}
 };
 
 Bot.prototype.onAddme = function(text, userid, username) {
-	if (!this.listActive) {
+	if (!this.djList.active) {
 		this.say(this.config.messages.listInactive);
 		return;
 	}
-	if (this.djList.indexOf(userid) != -1) {
+	if (this.djList.list.indexOf(userid) != -1) {
 		this.say(this.config.messages.listAlreadyOn
 				.replace(/{user.name}/g, username)
-				.replace(/{position}/g, this.djList.indexOf(userid) + 1));
+				.replace(/{position}/g, this.djList.list.indexOf(userid) + 1));
 		return;
 	}
-	this.djList.push(userid);
+	this.djList.list.push(userid);
+	this.writeDjList();
 	this.say(this.config.messages.listAdded
 			.replace(/{user.name}/g, username)
-			.replace(/{position}/g, this.djList.length));
+			.replace(/{position}/g, this.djList.list.length));
+};
+
+Bot.prototype.onRemoveme = function(text, userid, username) {
+	var i = this.djList.list.indexOf(userid);
+	if (i != -1) {
+		this.djList.list.splice(i, 1);
+		this.writeDjList();
+		this.say(this.config.messages.listRemoved
+				.replace(/{user.name}/g, username)
+				.replace(/{position}/g, i + 1));
+	} else {
+		this.say(this.config.messages.listRemoveNotListed
+				.replace(/{user.name}/g, username));
+	}
 };
 
 
@@ -302,6 +342,7 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 	this.roomInfo = data;
 	this.users = {};
+	this.readDjList();
 	if (data.success) {
 		this.roomInfo.users.forEach(function(user) {
 			this.users[user.userid] = user;

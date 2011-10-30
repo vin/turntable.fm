@@ -5,6 +5,7 @@ exports.conf = {
 	"greetings_filename": "greetings.json",
 	"activity_filename": "activity.json",
 	"usernames_filename": "usernames.json",
+	"djlist_filename": "djlist-{roomid}.json",
 	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
@@ -40,5 +41,7 @@ exports.conf = {
 		"listAdded": "{user.name}, you're now #{position} on the list.",
 		"list": "The current dj list is: {list}",
 		"listAlreadyOn": "{user.name} is already #{position} on the list.",
+		"listRemoved": "{user.name} has been removed from the DJ list.",
+		"listRemoveNotListed": "{user.name} is not on the DJ list.",
 	}
 };
