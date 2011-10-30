@@ -34,6 +34,11 @@ exports.conf = {
 		"bonus": "{dj.name} just got a bonus from {user.name}",
 		"bonusAlreadyUsed": "Sorry, bonus already used by {user.name}.  My head is already boppin!",
 		"lastActivity": "It's been {age} since I saw {user.name}",
-		"lastActivityUnknown": "Hmm, I haven't seen {user.name}"
+		"lastActivityUnknown": "Hmm, I haven't seen {user.name}",
+		"listInactive": "There is no list.  Fastest-fingers.",
+		"listEmpty": "Nobody's on the list.  Type *addme to add yourself.",
+		"listAdded": "{user.name}, you're now #{position} on the list.",
+		"list": "The current dj list is: {list}",
+		"listAlreadyOn": "{user.name} is already #{position} on the list.",
 	}
 };

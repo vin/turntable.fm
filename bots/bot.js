@@ -22,6 +22,8 @@ Bot = function(configName) {
 	this.currentSong = null;
 	this.greetings = {};
 	this.activity = {};
+	this.djList = [];
+	this.listActive = false;
 };
 
 Bot.usage = function() {
@@ -65,13 +67,21 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['bonus'] = this.onBonus.bind(this);
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
 	this.speechHandlers['last'] = this.onLast.bind(this);
+	this.speechHandlers['list'] = this.onList.bind(this);
+	this.speechHandlers['addme'] = this.onAddme.bind(this);
 };
 
 Bot.prototype.readData = function(path, cb) {
 	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
 	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
 		if (err) throw err;
-		if (cb) cb(JSON.parse(data));
+		var parsed = null;
+		try {
+			parsed = JSON.parse(data);
+		} catch (err) {
+			throw "Couldn't parse " + fullpath;
+		}
+		if (cb) cb(parsed);
 	}.bind(this));
 };
 
@@ -210,6 +220,41 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 		this.say(this.config.messages.lastActivityUnknown.replace(/{user\.name}/g, subject_name));
 	}
 };
+
+Bot.prototype.lookupUsername = function(userid) {
+	return this.users[userid].name;
+};
+
+Bot.prototype.onList = function(text, userid, username) {
+	if (!this.listActive) {
+		this.say(this.config.messages.listInactive);
+		return;
+	}
+	if (this.djList.length) {
+		this.say(this.config.messages.list
+				.replace(/{list}/g, this.djList.map(this.lookupUsername.bind(this)).join(', ')));
+	} else {
+		this.say(this.config.messages.listEmpty);
+	}
+};
+
+Bot.prototype.onAddme = function(text, userid, username) {
+	if (!this.listActive) {
+		this.say(this.config.messages.listInactive);
+		return;
+	}
+	if (this.djList.indexOf(userid) != -1) {
+		this.say(this.config.messages.listAlreadyOn
+				.replace(/{user.name}/g, username)
+				.replace(/{position}/g, this.djList.indexOf(userid) + 1));
+		return;
+	}
+	this.djList.push(userid);
+	this.say(this.config.messages.listAdded
+			.replace(/{user.name}/g, username)
+			.replace(/{position}/g, this.djList.length));
+};
+
 
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
