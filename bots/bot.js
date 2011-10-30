@@ -73,8 +73,16 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 };
 
+Bot.fullpath = function(path) {
+	return imports.path.join(imports.path.dirname(process.argv[1]), path);
+};
+
+Bot.tempfile = function(path) {
+	return Bot.fullpath(path + '.tmp.' + process.pid);
+};
+
 Bot.prototype.readData = function(path, cb, errCb) {
-	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
+	var fullpath = Bot.fullpath(path);
 	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
 		if (err) {
 			if (errCb) {
@@ -95,10 +103,11 @@ Bot.prototype.readData = function(path, cb, errCb) {
 };
 
 Bot.prototype.writeData = function(path, data, cb) {
-	var fullpath = imports.path.join(imports.path.dirname(process.argv[1]), path);
-	imports.fs.writeFile(fullpath, JSON.stringify(data), function(err) {
+	var tempfile = Bot.tempfile(path);
+	var fullpath = Bot.fullpath(path);
+	imports.fs.writeFile(tempfile, JSON.stringify(data), function(err) {
 		if (err) throw err;
-		if (cb) cb();
+		imports.fs.rename(tempfile, fullpath, cb);
 	}.bind(this));
 };
 
