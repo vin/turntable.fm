@@ -17,6 +17,7 @@ Bot = function(configName) {
 	this.speechHandlers = {};
 	this.users = {};
 	this.useridsByName = {};
+	this.userNamesById = {};
 	this.activity = {};
 	this.djs = {};
 	this.currentSong = null;
@@ -55,6 +56,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('registered', this.onRegistered.bind(this));
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
+	this.ttapi.on('roomChanged', this.readDjList.bind(this));
 	this.ttapi.on('deregistered', this.onDeregister.bind(this));
 	this.ttapi.on('add_dj', this.onAddDj.bind(this));
 	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
@@ -123,14 +125,17 @@ Bot.prototype.writeActivity = function() {
 
 Bot.prototype.readUsernames = function() {
 	this.readData(this.config.usernames_filename, function(data) {
-		this.useridsByName = data;
-		console.log('loaded %d usernames', Object.keys(this.useridsByName).length);
+		this.usernamesById = data;
+		for (userid in this.usernamesById) {
+			this.useridsByName[this.usernamesById[userid]] = userid;
+		}
+		console.log('loaded %d usernames', Object.keys(this.usernamesById).length);
 	}.bind(this));
 };
 
 Bot.prototype.writeUsernames = function() {
 	if (this.config.usernames_filename) {
-		this.writeData(this.config.usernames_filename, this.useridsByName,
+		this.writeData(this.config.usernames_filename, this.usernamesById,
 			console.log.bind(this, 'Username map saved to %s', this.config.usernames_filename));
 	};
 };
@@ -141,7 +146,7 @@ Bot.prototype.readDjList = function() {
 		var filename = this.config.djlist_filename.replace(/{roomid}/g, this.roomInfo.room.roomid);
 		var onData = function(data) {
 			this.djList = data;
-			console.log('loaded dj list: %s', this.djList);
+			console.log('loaded dj list: %s entries', this.djList.list.length);
 		}.bind(this);
 		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', this.roomInfo.room.roomid);
 		this.readData(filename, onData, onErr);
@@ -193,13 +198,13 @@ Bot.prototype.onBonus = function(text, userid, username) {
 	}
 	if (this.currentSong.bonusBy) {
 		this.say(this.config.messages.bonusAlreadyUsed
-				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name));
+				.replace(/{user.name}/g, this.lookupUsername(this.currentSong.bonusBy)));
 	} else {
 		this.ttapi.vote('up');
 		this.currentSong.bonusBy = userid;
 		this.say(this.config.messages.bonus
-				.replace(/{user.name}/g, this.users[this.currentSong.bonusBy].name)
-				.replace(/{dj.name}/g, this.users[this.roomInfo.room.metadata.current_dj].name));
+				.replace(/{user.name}/g, this.lookupUsername(this.currentSong.bonusBy))
+				.replace(/{dj.name}/g, this.lookupUsername(this.roomInfo.room.metadata.current_dj)));
 	}
 };
 
@@ -247,7 +252,7 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 };
 
 Bot.prototype.lookupUsername = function(userid) {
-	return this.users[userid].name;
+	return this.usernamesById[userid] || "(unknown)";
 };
 
 Bot.prototype.onList = function(text, userid, username) {
@@ -342,11 +347,11 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 	this.roomInfo = data;
 	this.users = {};
-	this.readDjList();
 	if (data.success) {
 		this.roomInfo.users.forEach(function(user) {
 			this.users[user.userid] = user;
 			this.useridsByName[user.name] = user.userid;
+			this.usernamesById[user.userid] = user.name;
 		}, this);
 		this.writeUsernames();
 		if (!this.currentSong) {
@@ -381,7 +386,7 @@ Bot.prototype.say = function(msg) {
 	if (!msg) return;
 	var message = msg
 		.replace(/{room\.name}/g, this.roomInfo.room.name)
-		.replace(/{bot\.name}/g, this.users[this.config.userid].name);
+		.replace(/{bot\.name}/g, this.lookupUsername(this.config.userid));
 	if (this.debug) {
 		console.log("say: %s", message);
 	}
@@ -395,7 +400,7 @@ Bot.prototype.onNewModerator = function(data) {
 		console.dir(data);
 	}
 	this.say(this.config.messages.newModerator
-		.replace(/{user\.name}/g, this.users[data.userid].name));
+		.replace(/{user\.name}/g, this.lookupUsername(data.userid)));
 };
 
 Bot.prototype.onAddDj = function(data) {
