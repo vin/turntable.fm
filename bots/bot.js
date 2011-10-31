@@ -67,6 +67,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
 	this.speechHandlers['bonus'] = this.onBonus.bind(this);
+	this.speechHandlers['bonys'] = this.onBonus.bind(this);
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
 	this.speechHandlers['last'] = this.onLast.bind(this);
 	this.speechHandlers['list'] = this.onList.bind(this);
