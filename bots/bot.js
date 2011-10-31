@@ -5,7 +5,7 @@ var imports = {
 	ttapi: require('ttapi'),
 	conf: require('node-config'),
 	djlist: require('./djlist'),
-	store: require('./store'),
+	Store: require('./store').Store,
 	stats: require('./stats'),
 };
 
@@ -25,7 +25,6 @@ Bot = function(configName) {
 	this.greetings = {};
 	this.activity = {};
 	this.djList = new imports.djlist.DjList();
-	this.store = new imports.store.Store();
 };
 
 Bot.usage = function() {
@@ -76,14 +75,14 @@ Bot.prototype.bindHandlers = function() {
 };
 
 Bot.prototype.readGreetings = function() {
-	this.store.read(this.config.greetings_filename, function(data) {
+	imports.Store.read(this.config.greetings_filename, function(data) {
 		this.greetings = data;
 		console.log('loaded %d greetings', Object.keys(this.greetings).length);
 	}.bind(this));
 };
 
 Bot.prototype.readActivity = function() {
-	this.store.read(this.config.activity_filename, function(data) {
+	imports.Store.read(this.config.activity_filename, function(data) {
 		this.activity = data;
 		console.log('loaded %d activity records', Object.keys(this.activity).length);
 	}.bind(this));
@@ -91,13 +90,13 @@ Bot.prototype.readActivity = function() {
 
 Bot.prototype.writeActivity = function() {
 	if (this.config.activity_filename) {
-		this.store.write(this.config.activity_filename, this.activity,
+		imports.Store.write(this.config.activity_filename, this.activity,
 			console.log.bind(this, 'Activity data saved to %s', this.config.activity_filename));
 	};
 };
 
 Bot.prototype.readUsernames = function() {
-	this.store.read(this.config.usernames_filename, function(data) {
+	imports.Store.read(this.config.usernames_filename, function(data) {
 		this.usernamesById = data;
 		for (userid in this.usernamesById) {
 			this.useridsByName[this.usernamesById[userid]] = userid;
@@ -108,7 +107,7 @@ Bot.prototype.readUsernames = function() {
 
 Bot.prototype.writeUsernames = function() {
 	if (this.config.usernames_filename) {
-		this.store.write(this.config.usernames_filename, this.usernamesById,
+		imports.Store.write(this.config.usernames_filename, this.usernamesById,
 			console.log.bind(this, 'Username map saved to %s', this.config.usernames_filename));
 	};
 };
@@ -234,16 +233,16 @@ Bot.prototype.onAddme = function(text, userid, username) {
 				.replace(/{position}/g, -position))
 		return;
 	}
-	this.djList.save(this.store, this.config.djlist_filename);
+	this.djList.save(this.config.djlist_filename);
 	this.say(this.config.messages.listAdded
 			.replace(/{user.name}/g, username)
-			.replace(/{position}/g, position + 1));
+			.replace(/{position}/g, position));
 };
 
 Bot.prototype.onRemoveme = function(text, userid, username) {
 	var i = this.djList.remove(userid);
 	if (i != -1) {
-		this.djList.save(this.store, this.config.djlist_filename);
+		this.djList.save(this.config.djlist_filename);
 		this.say(this.config.messages.listRemoved
 				.replace(/{user.name}/g, username)
 				.replace(/{position}/g, i + 1));
@@ -317,7 +316,7 @@ Bot.prototype.onRoomInfo = function(data) {
 
 Bot.prototype.initDjList = function(data) {
 	if (data.success) {
-		DjList.fromFile(this.store, this.config.djlist_filename, data.room.roomid, function(djList) {
+		DjList.fromFile(this.config.djlist_filename, data.room.roomid, function(djList) {
 			this.djList = djList;
 		}.bind(this));
 	} else {

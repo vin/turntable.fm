@@ -5,21 +5,18 @@ var imports = {
 	path: require('path'),
 };
 
-Store = function() {
-	this.dir = imports.path.dirname(process.argv[1]);
+Store = function() {};
+
+Store.fullpath = function(path) {
+	return imports.path.join(imports.path.dirname(process.argv[1]), path);
 };
 
-
-Store.prototype.fullpath = function(path) {
-	return imports.path.join(this.dir, path);
+Store.tempfile = function(path) {
+	return Store.fullpath(path + '.tmp.' + process.pid);
 };
 
-Store.prototype.tempfile = function(path) {
-	return this.fullpath(path + '.tmp.' + process.pid);
-};
-
-Store.prototype.read = function(path, cb, errCb) {
-	var fullpath = this.fullpath(path);
+Store.read = function(path, cb, errCb) {
+	var fullpath = Store.fullpath(path);
 	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
 		if (err) {
 			if (errCb) {
@@ -36,16 +33,16 @@ Store.prototype.read = function(path, cb, errCb) {
 			throw "Couldn't parse " + fullpath;
 		}
 		if (cb) cb(parsed);
-	}.bind(this));
+	});
 };
 
-Store.prototype.write = function(path, data, cb) {
-	var tempfile = this.tempfile(path);
-	var fullpath = this.fullpath(path);
+Store.write = function(path, data, cb) {
+	var tempfile = Store.tempfile(path);
+	var fullpath = Store.fullpath(path);
 	imports.fs.writeFile(tempfile, JSON.stringify(data), function(err) {
 		if (err) throw err;
 		imports.fs.rename(tempfile, fullpath, cb);
-	}.bind(this));
+	});
 };
 
 exports.Store = Store;

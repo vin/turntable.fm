@@ -1,5 +1,9 @@
 // Copyright 2011 Vineet Kumar
 
+var imports = {
+	Store: require('./store').Store,
+};
+
 DjList = function(data) {
 	data = data || {};
 	this.roomid = data.roomid;
@@ -37,12 +41,12 @@ DjList.prototype.add = function(userid) {
 DjList.prototype.remove = function(userid) {
 	var i = this.list.indexOf(userid);
 	if (i != -1) {
-		this.djList.list.splice(i, 1);
+		this.list.splice(i, 1);
 	}
 	return i;
 };
 
-DjList.fromFile = function(store, filename_pattern, roomid, cb) {
+DjList.fromFile = function(filename_pattern, roomid, cb) {
 	var result = new DjList();
 	result.roomid = roomid;
 	if (roomid) {
@@ -54,13 +58,13 @@ DjList.fromFile = function(store, filename_pattern, roomid, cb) {
 			if (cb) cb(result);
 		}.bind(this);
 		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', roomid);
-		store.read(filename, onData, onErr);
+		imports.Store.read(filename, onData, onErr);
 	}
 };
 
-DjList.prototype.save = function(store, filename_pattern, cb) {
+DjList.prototype.save = function(filename_pattern, cb) {
 	var filename = filename_pattern.replace(/{roomid}/g, this.roomid);
-	store.write(filename, this,
+	imports.Store.write(filename, this,
 		console.log.bind(this, 'DJ list saved to %s', filename));
 };
 
