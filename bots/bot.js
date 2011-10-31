@@ -1,18 +1,18 @@
 // Copyright 2011 Vineet Kumar
 
 var imports = {
-	fs: require('fs'),
 	repl: require('repl'),
-	path: require('path'),
 	ttapi: require('ttapi'),
 	conf: require('node-config'),
+	djlist: require('./djlist'),
+	store: require('./store'),
+	stats: require('./stats'),
 };
 
 Bot = function(configName) {
 	this.ttapi = null;
 	this.configName = configName || process.argv[2] || Bot.usage();
 	this.config = {};
-	this.greetings = {};
 	this.logChats = false;
 	this.speechHandlers = {};
 	this.users = {};
@@ -20,10 +20,12 @@ Bot = function(configName) {
 	this.userNamesById = {};
 	this.activity = {};
 	this.djs = {};
+	/** @type SongStats */
 	this.currentSong = null;
 	this.greetings = {};
 	this.activity = {};
-	this.djList = {active: false, list: []};
+	this.djList = new imports.djlist.DjList();
+	this.store = new imports.store.Store();
 };
 
 Bot.usage = function() {
@@ -56,7 +58,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('registered', this.onRegistered.bind(this));
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
-	this.ttapi.on('roomChanged', this.readDjList.bind(this));
+	this.ttapi.on('roomChanged', this.initDjList.bind(this));
 	this.ttapi.on('deregistered', this.onDeregister.bind(this));
 	this.ttapi.on('add_dj', this.onAddDj.bind(this));
 	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
@@ -73,53 +75,15 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 };
 
-Bot.fullpath = function(path) {
-	return imports.path.join(imports.path.dirname(process.argv[1]), path);
-};
-
-Bot.tempfile = function(path) {
-	return Bot.fullpath(path + '.tmp.' + process.pid);
-};
-
-Bot.prototype.readData = function(path, cb, errCb) {
-	var fullpath = Bot.fullpath(path);
-	imports.fs.readFile(fullpath, 'utf8', function(err, data) {
-		if (err) {
-			if (errCb) {
-				errCb(err);
-				return;
-			} else {
-				throw err;
-			}
-		}
-		var parsed = null;
-		try {
-			parsed = JSON.parse(data);
-		} catch (err) {
-			throw "Couldn't parse " + fullpath;
-		}
-		if (cb) cb(parsed);
-	}.bind(this));
-};
-
-Bot.prototype.writeData = function(path, data, cb) {
-	var tempfile = Bot.tempfile(path);
-	var fullpath = Bot.fullpath(path);
-	imports.fs.writeFile(tempfile, JSON.stringify(data), function(err) {
-		if (err) throw err;
-		imports.fs.rename(tempfile, fullpath, cb);
-	}.bind(this));
-};
-
 Bot.prototype.readGreetings = function() {
-	this.readData(this.config.greetings_filename, function(data) {
+	this.store.read(this.config.greetings_filename, function(data) {
 		this.greetings = data;
 		console.log('loaded %d greetings', Object.keys(this.greetings).length);
 	}.bind(this));
 };
 
 Bot.prototype.readActivity = function() {
-	this.readData(this.config.activity_filename, function(data) {
+	this.store.read(this.config.activity_filename, function(data) {
 		this.activity = data;
 		console.log('loaded %d activity records', Object.keys(this.activity).length);
 	}.bind(this));
@@ -127,13 +91,13 @@ Bot.prototype.readActivity = function() {
 
 Bot.prototype.writeActivity = function() {
 	if (this.config.activity_filename) {
-		this.writeData(this.config.activity_filename, this.activity,
+		this.store.write(this.config.activity_filename, this.activity,
 			console.log.bind(this, 'Activity data saved to %s', this.config.activity_filename));
 	};
 };
 
 Bot.prototype.readUsernames = function() {
-	this.readData(this.config.usernames_filename, function(data) {
+	this.store.read(this.config.usernames_filename, function(data) {
 		this.usernamesById = data;
 		for (userid in this.usernamesById) {
 			this.useridsByName[this.usernamesById[userid]] = userid;
@@ -144,28 +108,9 @@ Bot.prototype.readUsernames = function() {
 
 Bot.prototype.writeUsernames = function() {
 	if (this.config.usernames_filename) {
-		this.writeData(this.config.usernames_filename, this.usernamesById,
+		this.store.write(this.config.usernames_filename, this.usernamesById,
 			console.log.bind(this, 'Username map saved to %s', this.config.usernames_filename));
 	};
-};
-
-Bot.prototype.readDjList = function() {
-	this.djList = {active: false, list: []};
-	if (this.roomInfo.room) {
-		var filename = this.config.djlist_filename.replace(/{roomid}/g, this.roomInfo.room.roomid);
-		var onData = function(data) {
-			this.djList = data;
-			console.log('loaded dj list: %s entries', this.djList.list.length);
-		}.bind(this);
-		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', this.roomInfo.room.roomid);
-		this.readData(filename, onData, onErr);
-	}
-};
-
-Bot.prototype.writeDjList = function() {
-	var filename = this.config.djlist_filename.replace(/{roomid}/g, this.roomInfo.room.roomid);
-	this.writeData(filename, this.djList,
-		console.log.bind(this, 'DJ list saved to %s', filename));
 };
 
 /**
@@ -269,7 +214,7 @@ Bot.prototype.onList = function(text, userid, username) {
 		this.say(this.config.messages.listInactive);
 		return;
 	}
-	if (this.djList.list.length) {
+	if (this.djList.length()) {
 		this.say(this.config.messages.list
 				.replace(/{list}/g, this.djList.list.map(this.lookupUsername.bind(this)).join(', ')));
 	} else {
@@ -282,24 +227,23 @@ Bot.prototype.onAddme = function(text, userid, username) {
 		this.say(this.config.messages.listInactive);
 		return;
 	}
-	if (this.djList.list.indexOf(userid) != -1) {
+	var position = this.djList.add(userid);
+	if (position < 0) {
 		this.say(this.config.messages.listAlreadyOn
 				.replace(/{user.name}/g, username)
-				.replace(/{position}/g, this.djList.list.indexOf(userid) + 1));
+				.replace(/{position}/g, -position))
 		return;
 	}
-	this.djList.list.push(userid);
-	this.writeDjList();
+	this.djList.save(this.store, this.config.djlist_filename);
 	this.say(this.config.messages.listAdded
 			.replace(/{user.name}/g, username)
-			.replace(/{position}/g, this.djList.list.length));
+			.replace(/{position}/g, position + 1));
 };
 
 Bot.prototype.onRemoveme = function(text, userid, username) {
-	var i = this.djList.list.indexOf(userid);
+	var i = this.djList.remove(userid);
 	if (i != -1) {
-		this.djList.list.splice(i, 1);
-		this.writeDjList();
+		this.djList.save(this.store, this.config.djlist_filename);
 		this.say(this.config.messages.listRemoved
 				.replace(/{user.name}/g, username)
 				.replace(/{position}/g, i + 1));
@@ -308,7 +252,6 @@ Bot.prototype.onRemoveme = function(text, userid, username) {
 				.replace(/{user.name}/g, username));
 	}
 };
-
 
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
@@ -364,11 +307,21 @@ Bot.prototype.onRoomInfo = function(data) {
 		}, this);
 		this.writeUsernames();
 		if (!this.currentSong) {
-			this.currentSong = new SongStats(
+			this.currentSong = new imports.stats.SongStats(
 					data.room.metadata.current_song,
 					this.users[data.room.metadata.current_dj]);
 			this.currentSong.updateVotes(data.room.metadata);
 		}
+	}
+};
+
+Bot.prototype.initDjList = function(data) {
+	if (data.success) {
+		DjList.fromFile(this.store, this.config.djlist_filename, data.room.roomid, function(djList) {
+			this.djList = djList;
+		}.bind(this));
+	} else {
+		this.djList = new DjList();
 	}
 };
 
@@ -417,7 +370,7 @@ Bot.prototype.onAddDj = function(data) {
 		console.dir(data);
 	}
 	var user = data.user[0];
-	this.djs[user.userid] = new DjStats(user);
+	this.djs[user.userid] = new imports.stats.DjStats(user);
 	this.say(this.djAnnouncement(user));
 };
 
@@ -451,10 +404,10 @@ Bot.prototype.onNewSong = function(data) {
 	}
 	var song = data.room.metadata.current_song;
 	var userid = data.room.metadata.current_dj;
-	var dj = this.djs[userid] || (this.djs[userid] = new DjStats(this.users[userid]));
+	var dj = this.djs[userid] || (this.djs[userid] = new imports.stats.DjStats(this.users[userid]));
 	this.djs[userid].play(song);
 	this.finishSong();
-	this.currentSong = new SongStats(song, this.users[song.djid]);
+	this.currentSong = new imports.stats.SongStats(song, this.users[song.djid]);
 };
 
 Bot.prototype.finishSong = function() {
@@ -500,33 +453,7 @@ Bot.prototype.recordActivity = function(userid) {
 	this.writeActivity();
 };
 
-SongStats = function(song, dj) {
-	this.song = song;
-	this.votes = {};
-	this.dj = dj;
-};
 
-SongStats.prototype.updateVotes = function(votes) {
-	this.votes.upvotes = votes.upvotes;
-	this.votes.downvotes = votes.downvotes;
-	this.votes.votelog = votes.votelog;
-};
-
-DjStats = function(user) {
-	this.user = user;
-	this.lames = 0;
-	this.plays = 0;
-	this.gain = 0;
-};
-
-DjStats.prototype.update = function(user) {
-	this.gain += (user.points - this.user.points);
-	this.user = user;
-}
-
-DjStats.prototype.play = function(song) {
-	++this.plays;
-};
 
 exports.Bot = Bot;
 exports.imports = imports;
