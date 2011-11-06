@@ -35,6 +35,17 @@ DjList.prototype.add = function(userid) {
 	return -1 - i;
 };
 
+/**
+  * Adds the given userid to the front of the list.  If the user was already listed, they are
+  * removed from their current posiiton and added to the front of the list.  The user's original
+  * position (if any) is returned, or -1 if the user was previously unlisted.
+  */
+DjList.prototype.addFirst = function(userid) {
+	var i = this.remove(userid);
+	this.list.unshift(userid);
+	return i;
+};
+
 /** Remove the given userid from the list and return the index it was removed
   * from, or -1 if it was not on the list.
   */
@@ -57,7 +68,10 @@ DjList.fromFile = function(filename_pattern, roomid, cb) {
 			console.log('loaded dj list: %s entries', result.list.length);
 			if (cb) { cb(result); }
 		}.bind(this);
-		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', roomid);
+		var onErr = function(err) {
+			console.log('no DJ list for room %s: %s', roomid, err);
+			if (cb) { cb(result); }
+		}.bind(this);
 		imports.Store.read(filename, onData, onErr);
 	}
 };
@@ -65,7 +79,7 @@ DjList.fromFile = function(filename_pattern, roomid, cb) {
 DjList.prototype.save = function(filename_pattern, cb) {
 	var filename = filename_pattern.replace(/\{roomid\}/g, this.roomid);
 	imports.Store.write(filename, this,
-		console.log.bind(this, 'DJ list saved to %s', filename));
+		cb || console.log.bind(this, 'DJ list saved to %s', filename));
 };
 
 

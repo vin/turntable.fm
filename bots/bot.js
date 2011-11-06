@@ -75,6 +75,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['list-on'] = this.onListOn.bind(this);
 	this.speechHandlers['list-off'] = this.onListOff.bind(this);
 	this.speechHandlers['addme'] = this.onAddme.bind(this);
+	this.speechHandlers['add-first'] = this.onAddFirst.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 	this.speechHandlers['remove'] = this.onRemove.bind(this);
 };
@@ -244,6 +245,7 @@ Bot.prototype.onListOn = function(text, userid, username) {
 		this.say(this.config.messages.listAlreadyOn);
 	} else {
 		this.djList.active = true;
+		this.djList.save(this.config.djlist_filename);
 		this.say(this.config.messages.listOn);
 	}
 };
@@ -251,6 +253,7 @@ Bot.prototype.onListOn = function(text, userid, username) {
 Bot.prototype.onListOff = function(text, userid, username) {
 	if (this.djList.active) {
 		this.djList.active = false;
+		this.djList.save(this.config.djlist_filename);
 		this.say(this.config.messages.listOff);
 	} else {
 		this.say(this.config.messages.listAlreadyOff);
@@ -273,6 +276,29 @@ Bot.prototype.onAddme = function(text, userid, username) {
 	this.say(this.config.messages.listAdded
 			.replace(/\{user.name\}/g, username)
 			.replace(/\{position\}/g, position));
+};
+
+Bot.prototype.onAddFirst = function(text, userid, username) {
+	if (!this.djList.active) {
+		this.say(this.config.messages.listInactive);
+		return;
+	}
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	if (subjectid) {
+		this.djList.addFirst(subjectid);
+		this.djList.save(this.config.djlist_filename);
+		this.say(this.config.messages.listAdded
+				.replace(/\{user.name\}/g, subject_name)
+				.replace(/\{position\}/g, 1));
+	} else {
+		this.say(this.config.messages.unknownUser
+				.replace(/\{user.name\}/g, subject_name));
+	}
 };
 
 Bot.prototype.onRemoveme = function(text, userid, username) {
@@ -507,7 +533,8 @@ Bot.bareCommands = [
 Bot.moderatorCommands = [
 	'list-on',
 	'list-off',
-	'remove'
+	'remove',
+	'add-first'
 ];
 
 Bot.prototype.recordActivity = function(userid) {
