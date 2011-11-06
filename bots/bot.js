@@ -66,6 +66,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('update_votes', this.onUpdateVotes.bind(this));
 	this.speechHandlers['help'] = this.onHelp.bind(this);
 	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
+	this.speechHandlers['mod-commands'] = this.onHelpModCommands.bind(this);
 	this.speechHandlers['bonus'] = this.onBonus.bind(this);
 	this.speechHandlers['bonys'] = this.onBonus.bind(this);
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
@@ -150,7 +151,16 @@ Bot.prototype.onHelp = function() {
 
 Bot.prototype.onHelpCommands = function() {
 	this.say('commands: ' +
-			Object.keys(this.speechHandlers).map(function(s) { return "*" + s; }).join(', '));
+			Object.keys(this.speechHandlers)
+				.filter(function(s) { return Bot.moderatorCommands.indexOf(s) === -1})
+				.map(function(s) { return "*" + s; }).join(', '));
+};
+
+Bot.prototype.onHelpModCommands = function() {
+	this.say('moderator commands: ' +
+			Object.keys(this.speechHandlers)
+				.filter(function(s) { return Bot.moderatorCommands.indexOf(s) !== -1})
+				.map(function(s) { return "*" + s; }).join(', '));
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
