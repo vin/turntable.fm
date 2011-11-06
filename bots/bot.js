@@ -454,6 +454,19 @@ Bot.prototype.onAddDj = function(data) {
 	}
 	var user = data.user[0];
 	this.djs[user.userid] = new imports.stats.DjStats(user);
+	if (this.djList.active) {
+		var next = this.djList.next();
+		if (next) {
+			if (user.userid === next) {
+				this.djList.remove(user.userid);
+			} else {
+				this.say(this.config.messages.wrongDj
+					.replace(/\{right.name\}/g, this.lookupUsername(next))
+					.replace(/\{wrong.name\}/g, user.name));
+				return;
+			}
+		}
+	}
 	this.say(this.djAnnouncement(user));
 };
 
@@ -478,6 +491,13 @@ Bot.prototype.onRemDj = function(data) {
 		stats.update(user);
 		delete this.djs[user.userid];
 		this.say(this.djSummary(stats));
+	}
+	if (this.djList.active) {
+		var next = this.djList.next();
+		if (next) {
+			this.say(this.config.messages.nextDj
+					.replace(/\{user.name\}/, this.lookupUsername(next)));
+		};
 	}
 };
 

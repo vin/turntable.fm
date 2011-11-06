@@ -47,5 +47,7 @@ exports.conf = {
 		"listAlreadyListed": "{user.name} is already #{position} on the list.",
 		"listRemoved": "{user.name} has been removed from the DJ list.",
 		"listRemoveNotListed": "{user.name} is not on the DJ list.",
+		"wrongDj": "{right.name} is supposed to be up next.  {wrong.name}, please step down.",
+		"nextDj": "{user.name} is up next.",
 	}
 };
