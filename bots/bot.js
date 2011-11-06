@@ -75,6 +75,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['list-off'] = this.onListOff.bind(this);
 	this.speechHandlers['addme'] = this.onAddme.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
+	this.speechHandlers['remove'] = this.onRemove.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -277,6 +278,16 @@ Bot.prototype.onRemoveme = function(text, userid, username) {
 	}
 };
 
+Bot.prototype.onRemove = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	this.onRemoveme(text, subjectid, subject_name);
+};
+
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
 		console.dir(data);
@@ -474,6 +485,7 @@ Bot.bareCommands = [
 Bot.moderatorCommands = [
 	'list-on',
 	'list-off',
+	'remove',
 ];
 
 Bot.prototype.recordActivity = function(userid) {
