@@ -71,6 +71,8 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
 	this.speechHandlers['last'] = this.onLast.bind(this);
 	this.speechHandlers['list'] = this.onList.bind(this);
+	this.speechHandlers['list-on'] = this.onListOn.bind(this);
+	this.speechHandlers['list-off'] = this.onListOff.bind(this);
 	this.speechHandlers['addme'] = this.onAddme.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 };
@@ -114,7 +116,7 @@ Bot.prototype.writeUsernames = function() {
 };
 
 /**
-  * @param {{name: string, text: string}} data return by ttapi
+  * @param {{name: string, userid: string, text: string}} data return by ttapi
   */
 Bot.prototype.onSpeak = function(data) {
 	if (this.debug) {
@@ -131,10 +133,14 @@ Bot.prototype.onSpeak = function(data) {
         } else if (Bot.bareCommands.indexOf(data.text) == -1) { // bare commands must match the entire text line
                 return;
         }
-        var handler = this.speechHandlers[command];
-        if (handler) {
-                handler(data.text, data.userid, data.name);
-        }
+	if (Bot.moderatorCommands.indexOf(command) != -1) {
+		if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) == -1) {
+			return;
+		}
+	}
+	if (command in this.speechHandlers) {
+                this.speechHandlers[command](data.text, data.userid, data.name);
+	}
 };
 
 Bot.prototype.onHelp = function() {
@@ -222,6 +228,24 @@ Bot.prototype.onList = function(text, userid, username) {
 	}
 };
 
+Bot.prototype.onListOn = function(text, userid, username) {
+	if (this.djList.active) {
+		this.say(this.config.messages.listAlreadyOn);
+	} else {
+		this.djList.active = true;
+		this.say(this.config.messages.listOn);
+	}
+};
+
+Bot.prototype.onListOff = function(text, userid, username) {
+	if (this.djList.active) {
+		this.djList.active = false;
+		this.say(this.config.messages.listOff);
+	} else {
+		this.say(this.config.messages.listAlreadyOff);
+	}
+};
+
 Bot.prototype.onAddme = function(text, userid, username) {
 	if (!this.djList.active) {
 		this.say(this.config.messages.listInactive);
@@ -229,7 +253,7 @@ Bot.prototype.onAddme = function(text, userid, username) {
 	}
 	var position = this.djList.add(userid);
 	if (position < 0) {
-		this.say(this.config.messages.listAlreadyOn
+		this.say(this.config.messages.listAlreadyListed
 				.replace(/{user.name}/g, username)
 				.replace(/{position}/g, -position))
 		return;
@@ -445,6 +469,11 @@ Bot.prototype.onNoSong = function(data) {
 
 Bot.bareCommands = [
 	'help',
+];
+
+Bot.moderatorCommands = [
+	'list-on',
+	'list-off',
 ];
 
 Bot.prototype.recordActivity = function(userid) {

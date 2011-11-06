@@ -40,7 +40,11 @@ exports.conf = {
 		"listEmpty": "Nobody's on the list.  Type *addme to add yourself.",
 		"listAdded": "{user.name}, you're now #{position} on the list.",
 		"list": "The current dj list is: {list}",
-		"listAlreadyOn": "{user.name} is already #{position} on the list.",
+		"listOn": "The room now has a dj list.  Type *addme to add yourself.",
+		"listOff": "The dj list is now off.  Fastest-fingers.",
+		"listAlreadyOn": "The dj list is already on.  Type *list to see the current list.",
+		"listAlreadyOff": "The dj list is already off.  Fastest-fingers.",
+		"listAlreadyListed": "{user.name} is already #{position} on the list.",
 		"listRemoved": "{user.name} has been removed from the DJ list.",
 		"listRemoveNotListed": "{user.name} is not on the DJ list.",
 	}
