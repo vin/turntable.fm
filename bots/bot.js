@@ -158,12 +158,12 @@ Bot.prototype.onBonus = function(text, userid, username) {
 		this.currentSong.bonusBy = userid;
 		this.say(this.config.messages.bonus
 				.replace(/{user.name}/g, this.lookupUsername(this.currentSong.bonusBy))
-				.replace(/{dj.name}/g, this.lookupUsername(this.roomInfo.room.metadata.current_dj)));
+				.replace(/{dj.name}/g, this.currentSong.dj.name));
 	}
 };
 
 Bot.prototype.onAlbum = function() {
-	if (this.currentSong) {
+	if (this.currentSong && this.currentSong.song) {
 		this.say(this.config.messages.album
 				.replace(/{song}/g, this.currentSong.song.metadata.song)
 				.replace(/{artist}/g, this.currentSong.song.metadata.artist)
@@ -411,7 +411,7 @@ Bot.prototype.onNewSong = function(data) {
 };
 
 Bot.prototype.finishSong = function() {
-	if (this.currentSong) {
+	if (this.currentSong && this.currentSong.song && this.currentSong.dj) {
 		var message = this.config.messages.songSummary;
 		this.say(message
 			.replace(/{user\.name}/g, this.currentSong.dj.name)
