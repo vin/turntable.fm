@@ -1,7 +1,7 @@
 // Copyright 2011 Vineet Kumar
 
 var imports = {
-	Store: require('./store').Store,
+	Store: require('./store').Store
 };
 
 DjList = function(data) {
@@ -13,11 +13,11 @@ DjList = function(data) {
 
 DjList.prototype.length = function() {
 	return this.list.length;
-}
+};
 
 DjList.prototype.next = function() {
 	return this.list[0];
-}
+};
 
 /**
   * Adds the given userid to the list, and returns the position at which it was added.
@@ -27,11 +27,11 @@ DjList.prototype.next = function() {
   */
 DjList.prototype.add = function(userid) {
 	var i = this.list.indexOf(userid);
-	if (i == -1) {
+	if (i === -1) {
 		this.list.push(userid);
 		return this.list.length;
 	}
-       	// already listed
+	// already listed
 	return -1 - i;
 };
 
@@ -40,7 +40,7 @@ DjList.prototype.add = function(userid) {
   */
 DjList.prototype.remove = function(userid) {
 	var i = this.list.indexOf(userid);
-	if (i != -1) {
+	if (i !== -1) {
 		this.list.splice(i, 1);
 	}
 	return i;
@@ -50,12 +50,12 @@ DjList.fromFile = function(filename_pattern, roomid, cb) {
 	var result = new DjList();
 	result.roomid = roomid;
 	if (roomid) {
-		var filename = filename_pattern.replace(/{roomid}/g, roomid);
+		var filename = filename_pattern.replace(/\{roomid\}/g, roomid);
 		var onData = function(data) {
 			result.list = data.list;
 			result.active = data.active;
 			console.log('loaded dj list: %s entries', result.list.length);
-			if (cb) cb(result);
+			if (cb) { cb(result); }
 		}.bind(this);
 		var onErr = console.log.bind(this, 'no DJ list for room %s: %s', roomid);
 		imports.Store.read(filename, onData, onErr);
@@ -63,7 +63,7 @@ DjList.fromFile = function(filename_pattern, roomid, cb) {
 };
 
 DjList.prototype.save = function(filename_pattern, cb) {
-	var filename = filename_pattern.replace(/{roomid}/g, this.roomid);
+	var filename = filename_pattern.replace(/\{roomid\}/g, this.roomid);
 	imports.Store.write(filename, this,
 		console.log.bind(this, 'DJ list saved to %s', filename));
 };

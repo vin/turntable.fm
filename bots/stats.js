@@ -22,7 +22,7 @@ DjStats = function(user) {
 DjStats.prototype.update = function(user) {
 	this.gain += (user.points - this.user.points);
 	this.user = user;
-}
+};
 
 DjStats.prototype.play = function(song) {
 	++this.plays;

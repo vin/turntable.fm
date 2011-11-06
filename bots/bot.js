@@ -6,7 +6,7 @@ var imports = {
 	conf: require('node-config'),
 	djlist: require('./djlist'),
 	Store: require('./store').Store,
-	stats: require('./stats'),
+	stats: require('./stats')
 };
 
 Bot = function(configName) {
@@ -32,10 +32,10 @@ Bot.usage = function() {
 };
 
 Bot.prototype.onInitConfig = function(cb, err) {
-	if (err) throw err;
+	if (err) { throw err; }
 	this.config = imports.conf;
 	if (!this.config.noRepl) {
-		var replContext = imports.repl.start(this.configName + "> ").context
+		var replContext = imports.repl.start(this.configName + "> ").context;
 		replContext.bot = this;
 	}
 	this.debug = this.config.debug;
@@ -45,7 +45,7 @@ Bot.prototype.onInitConfig = function(cb, err) {
 	this.readUsernames();
 	this.ttapi = new imports.ttapi(this.config.auth, this.config.userid, this.config.roomid);
 	this.bindHandlers();
-	if (cb) cb();
+	if (cb) { cb(); }
 };
 
 Bot.prototype.start = function(cb) {
@@ -96,13 +96,13 @@ Bot.prototype.writeActivity = function() {
 	if (this.config.activity_filename) {
 		imports.Store.write(this.config.activity_filename, this.activity,
 			console.log.bind(this, 'Activity data saved to %s', this.config.activity_filename));
-	};
+	}
 };
 
 Bot.prototype.readUsernames = function() {
 	imports.Store.read(this.config.usernames_filename, function(data) {
 		this.usernamesById = data;
-		for (userid in this.usernamesById) {
+		for (var userid in this.usernamesById) {
 			this.useridsByName[this.usernamesById[userid]] = userid;
 		}
 		console.log('loaded %d usernames', Object.keys(this.usernamesById).length);
@@ -113,7 +113,7 @@ Bot.prototype.writeUsernames = function() {
 	if (this.config.usernames_filename) {
 		imports.Store.write(this.config.usernames_filename, this.usernamesById,
 			console.log.bind(this, 'Username map saved to %s', this.config.usernames_filename));
-	};
+	}
 };
 
 /**
@@ -131,11 +131,11 @@ Bot.prototype.onSpeak = function(data) {
         var command = words[0].toLowerCase();
         if (command.match(/^[!*\/]/)) {
                 command = command.substring(1);
-        } else if (Bot.bareCommands.indexOf(data.text) == -1) { // bare commands must match the entire text line
+        } else if (Bot.bareCommands.indexOf(data.text) === -1) { // bare commands must match the entire text line
                 return;
         }
-	if (Bot.moderatorCommands.indexOf(command) != -1) {
-		if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) == -1) {
+	if (Bot.moderatorCommands.indexOf(command) !== -1) {
+		if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) === -1) {
 			return;
 		}
 	}
@@ -159,22 +159,22 @@ Bot.prototype.onBonus = function(text, userid, username) {
 	}
 	if (this.currentSong.bonusBy) {
 		this.say(this.config.messages.bonusAlreadyUsed
-				.replace(/{user.name}/g, this.lookupUsername(this.currentSong.bonusBy)));
+				.replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
 	} else {
 		this.ttapi.vote('up');
 		this.currentSong.bonusBy = userid;
 		this.say(this.config.messages.bonus
-				.replace(/{user.name}/g, this.lookupUsername(this.currentSong.bonusBy))
-				.replace(/{dj.name}/g, this.currentSong.dj.name));
+				.replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy))
+				.replace(/\{dj.name\}/g, this.currentSong.dj.name));
 	}
 };
 
 Bot.prototype.onAlbum = function() {
 	if (this.currentSong && this.currentSong.song) {
 		this.say(this.config.messages.album
-				.replace(/{song}/g, this.currentSong.song.metadata.song)
-				.replace(/{artist}/g, this.currentSong.song.metadata.artist)
-				.replace(/{album}/g, this.currentSong.song.metadata.album || "(unknown)"));
+				.replace(/\{song\}/g, this.currentSong.song.metadata.song)
+				.replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
+				.replace(/\{album\}/g, this.currentSong.song.metadata.album || "(unknown)"));
 	}
 };
 
@@ -184,7 +184,7 @@ Bot.prototype.onAlbum = function() {
   */
 Bot.splitCommand = function(text) {
 	var i = text.search(/\s/);
-	if (i == -1) {
+	if (i === -1) {
 		return [text, ''];
 	}
 	return [text.substr(0, i), text.substr(i).trimLeft()];
@@ -205,10 +205,10 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 		var age_ms = new Date() - new Date(last);
 		var age_h = Math.floor(age_ms / 1000 / 3600);
 		this.say(this.config.messages.lastActivity
-				.replace(/{user\.name}/g, subject_name)
-				.replace(/{age}/g, age_h + " hours"));
+				.replace(/\{user\.name\}/g, subject_name)
+				.replace(/\{age\}/g, age_h + " hours"));
 	} else {
-		this.say(this.config.messages.lastActivityUnknown.replace(/{user\.name}/g, subject_name));
+		this.say(this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name));
 	}
 };
 
@@ -223,7 +223,7 @@ Bot.prototype.onList = function(text, userid, username) {
 	}
 	if (this.djList.length()) {
 		this.say(this.config.messages.list
-				.replace(/{list}/g, this.djList.list.map(this.lookupUsername.bind(this)).join(', ')));
+				.replace(/\{list\}/g, this.djList.list.map(this.lookupUsername.bind(this)).join(', ')));
 	} else {
 		this.say(this.config.messages.listEmpty);
 	}
@@ -255,26 +255,26 @@ Bot.prototype.onAddme = function(text, userid, username) {
 	var position = this.djList.add(userid);
 	if (position < 0) {
 		this.say(this.config.messages.listAlreadyListed
-				.replace(/{user.name}/g, username)
-				.replace(/{position}/g, -position))
+				.replace(/\{user.name\}/g, username)
+				.replace(/\{position\}/g, -position));
 		return;
 	}
 	this.djList.save(this.config.djlist_filename);
 	this.say(this.config.messages.listAdded
-			.replace(/{user.name}/g, username)
-			.replace(/{position}/g, position));
+			.replace(/\{user.name\}/g, username)
+			.replace(/\{position\}/g, position));
 };
 
 Bot.prototype.onRemoveme = function(text, userid, username) {
 	var i = this.djList.remove(userid);
-	if (i != -1) {
+	if (i !== -1) {
 		this.djList.save(this.config.djlist_filename);
 		this.say(this.config.messages.listRemoved
-				.replace(/{user.name}/g, username)
-				.replace(/{position}/g, i + 1));
+				.replace(/\{user.name\}/g, username)
+				.replace(/\{position\}/g, i + 1));
 	} else {
 		this.say(this.config.messages.listRemoveNotListed
-				.replace(/{user.name}/g, username));
+				.replace(/\{user.name\}/g, username));
 	}
 };
 
@@ -293,34 +293,44 @@ Bot.prototype.onRegistered = function(data) {
 		console.dir(data);
 	}
 	user = data.user[0];
-	if (user.userid != this.config.userid) {
+	if (user.userid !== this.config.userid) {
+		this.recordActivity(user.userid);
 		this.refreshRoomInfo();
 		this.say(this.greeting(user));
 	}
 };
 
+MS_FROM_S = 1000;
+S_FROM_M = 60;
+M_FROM_H = 60;
+H_FROM_D = 24;
+D_FROM_W = 7;
+MS_FROM_W = MS_FROM_S * S_FROM_M * M_FROM_H * H_FROM_D * D_FROM_W;
+
 Bot.prototype.greeting = function(user) {
 	var message = this.greetings[user.userid];
-	if (!message && user.created * 1000 > new Date() - 7 * 24 * 3600 * 1000) {
+	var now = new Date();
+	var aWeekAgo = new Date().setDate(now.getDate() - 7);
+	if (!message && (new Date(MS_FROM_S * user.created) > aWeekAgo)) {
 		message = randomElement(this.config.messages.newUserGreetings);
 	}
 	if (!message) {
 		message = randomElement(this.config.messages.defaultGreetings);
 	}
-	return message.replace(/{user\.name}/g, user.name);
+	return message.replace(/\{user\.name\}/g, user.name);
 };
 
 Bot.prototype.djAnnouncement = function(user) {
 	var message;
-	if (user.points == 0) {
+	if (user.points === 0) {
 		message = randomElement(this.config.messages.newDjAnnouncements);
 	} else {
 		message = randomElement(this.config.messages.djAnnouncements);
 	}
 	return message
-		.replace(/{user\.name}/g, user.name)
-		.replace(/{user\.points}/g, user.points)
-		.replace(/{user\.fans}/g, user.fans);
+		.replace(/\{user\.name\}/g, user.name)
+		.replace(/\{user\.points\}/g, user.points)
+		.replace(/\{user\.fans\}/g, user.fans);
 };
 
 
@@ -350,6 +360,7 @@ Bot.prototype.onRoomInfo = function(data) {
 	}
 };
 
+/** @param {RoomInfo} data */
 Bot.prototype.initDjList = function(data) {
 	if (data.success) {
 		DjList.fromFile(this.config.djlist_filename, data.room.roomid, function(djList) {
@@ -363,7 +374,7 @@ Bot.prototype.initDjList = function(data) {
 Bot.prototype.refreshRoomInfo = function(cb) {
 	this.ttapi.roomInfo(function(data) {
 		this.onRoomInfo.call(this, data);
-		if (cb) cb.call(this, data);
+		if (cb) { cb.call(this, data); }
 	}.bind(this));
 };
 
@@ -371,19 +382,20 @@ Bot.prototype.onDeregister = function(data) {
 	if (this.debug) {
 		console.dir(data);
 	}
-	if (data.userid == this.config.userid) {
+	if (data.userid === this.config.userid) {
 		this.roomInfo = null;
 		this.users = {};
 	} else {
+		this.recordActivity(data.userid);
 		this.refreshRoomInfo();
 	}
 };
 
 Bot.prototype.say = function(msg) {
-	if (!msg) return;
+	if (!msg) { return; }
 	var message = msg
-		.replace(/{room\.name}/g, this.roomInfo.room.name)
-		.replace(/{bot\.name}/g, this.lookupUsername(this.config.userid));
+		.replace(/\{room\.name\}/g, this.roomInfo.room.name)
+		.replace(/\{bot\.name\}/g, this.lookupUsername(this.config.userid));
 	if (this.debug) {
 		console.log("say: %s", message);
 	}
@@ -397,7 +409,7 @@ Bot.prototype.onNewModerator = function(data) {
 		console.dir(data);
 	}
 	this.say(this.config.messages.newModerator
-		.replace(/{user\.name}/g, this.lookupUsername(data.userid)));
+		.replace(/\{user\.name\}/g, this.lookupUsername(data.userid)));
 };
 
 Bot.prototype.onAddDj = function(data) {
@@ -412,11 +424,11 @@ Bot.prototype.onAddDj = function(data) {
 Bot.prototype.djSummary = function(stats) {
 	var message = randomElement(this.config.messages.djSummaries);
 	return message
-		.replace(/{user\.name}/g, stats.user.name)
-		.replace(/{user\.points}/g, stats.user.points)
-		.replace(/{lames}/g, stats.lames)
-		.replace(/{gain}/g, stats.gain)
-		.replace(/{plays}/g, stats.plays);
+		.replace(/\{user\.name\}/g, stats.user.name)
+		.replace(/\{user\.points\}/g, stats.user.points)
+		.replace(/\{lames\}/g, stats.lames)
+		.replace(/\{gain\}/g, stats.gain)
+		.replace(/\{plays\}/g, stats.plays);
 
 };
 
@@ -449,12 +461,12 @@ Bot.prototype.finishSong = function() {
 	if (this.currentSong && this.currentSong.song && this.currentSong.dj) {
 		var message = this.config.messages.songSummary;
 		this.say(message
-			.replace(/{user\.name}/g, this.currentSong.dj.name)
-			.replace(/{awesomes}/g, isNaN(this.currentSong.votes.upvotes) ? 0 : this.currentSong.votes.upvotes)
-			.replace(/{lames}/g, isNaN(this.currentSong.votes.downvotes) ? 0 : this.currentSong.votes.downvotes)
-			.replace(/{song}/g, this.currentSong.song.metadata.song)
-			.replace(/{artist}/g, this.currentSong.song.metadata.artist)
-			.replace(/{album}/g, this.currentSong.song.metadata.album));
+			.replace(/\{user\.name\}/g, this.currentSong.dj.name)
+			.replace(/\{awesomes\}/g, isNaN(this.currentSong.votes.upvotes) ? 0 : this.currentSong.votes.upvotes)
+			.replace(/\{lames\}/g, isNaN(this.currentSong.votes.downvotes) ? 0 : this.currentSong.votes.downvotes)
+			.replace(/\{song\}/g, this.currentSong.song.metadata.song)
+			.replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
+			.replace(/\{album\}/g, this.currentSong.song.metadata.album));
 	}
 };
 
@@ -479,17 +491,17 @@ Bot.prototype.onNoSong = function(data) {
 };
 
 Bot.bareCommands = [
-	'help',
+	'help'
 ];
 
 Bot.moderatorCommands = [
 	'list-on',
 	'list-off',
-	'remove',
+	'remove'
 ];
 
 Bot.prototype.recordActivity = function(userid) {
-	if (userid == this.config.userid) return;
+	if (userid === this.config.userid) { return; }
 	this.activity[userid] = new Date();
 	this.writeActivity();
 };

@@ -2,7 +2,7 @@
 
 var imports = {
 	fs: require('fs'),
-	path: require('path'),
+	path: require('path')
 };
 
 Store = function() {};
@@ -29,10 +29,10 @@ Store.read = function(path, cb, errCb) {
 		var parsed = null;
 		try {
 			parsed = JSON.parse(data);
-		} catch (err) {
+		} catch (ex) {
 			throw "Couldn't parse " + fullpath;
 		}
-		if (cb) cb(parsed);
+		if (cb) { cb(parsed); }
 	});
 };
 
@@ -40,7 +40,7 @@ Store.write = function(path, data, cb) {
 	var tempfile = Store.tempfile(path);
 	var fullpath = Store.fullpath(path);
 	imports.fs.writeFile(tempfile, JSON.stringify(data), function(err) {
-		if (err) throw err;
+		if (err) { throw err; }
 		imports.fs.rename(tempfile, fullpath, cb);
 	});
 };
