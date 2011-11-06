@@ -439,8 +439,8 @@ Bot.prototype.onNewSong = function(data) {
 	}
 	var song = data.room.metadata.current_song;
 	var userid = data.room.metadata.current_dj;
-	var dj = this.djs[userid] || (this.djs[userid] = new imports.stats.DjStats(this.users[userid]));
-	this.djs[userid].play(song);
+	var djstats = this.djs[userid] || (this.djs[userid] = new imports.stats.DjStats(this.users[userid]));
+	djstats.play(song);
 	this.finishSong();
 	this.currentSong = new imports.stats.SongStats(song, this.users[song.djid]);
 };
@@ -450,8 +450,8 @@ Bot.prototype.finishSong = function() {
 		var message = this.config.messages.songSummary;
 		this.say(message
 			.replace(/{user\.name}/g, this.currentSong.dj.name)
-			.replace(/{awesomes}/g, this.currentSong.votes.upvotes)
-			.replace(/{lames}/g, this.currentSong.votes.downvotes)
+			.replace(/{awesomes}/g, isNaN(this.currentSong.votes.upvotes) ? 0 : this.currentSong.votes.upvotes)
+			.replace(/{lames}/g, isNaN(this.currentSong.votes.downvotes) ? 0 : this.currentSong.votes.downvotes)
 			.replace(/{song}/g, this.currentSong.song.metadata.song)
 			.replace(/{artist}/g, this.currentSong.song.metadata.artist)
 			.replace(/{album}/g, this.currentSong.song.metadata.album));
