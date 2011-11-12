@@ -26,7 +26,7 @@ Bot = function(configName) {
 	this.greetings = {};
 	this.activity = {};
 	this.djList = new imports.djlist.DjList();
-	this.banList = new imports.banlist.BanList();
+	this.banList = null;
 };
 
 Bot.usage = function() {
