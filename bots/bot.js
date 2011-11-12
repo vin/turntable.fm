@@ -341,6 +341,7 @@ Bot.prototype.onBan = function(text, userid, username) {
 	var subject_name = split[0];
 	var comment = split[1] || "";
 	var subjectid = this.useridsByName[subject_name];
+	if (!subjectid) { return; }
 	this.banList.ban(subjectid, comment + " -- " + username + " " + new Date());
 	this.banList.save(this.config.banlist_filename);
 	this.say(this.config.messages.ban
@@ -402,6 +403,14 @@ Bot.prototype.onRegistered = function(data) {
 	if (user.userid !== this.config.userid) {
 		this.recordActivity(user.userid);
 		this.refreshRoomInfo();
+		var ban_comment = this.banList.query(user.userid);
+		if (ban_comment) {
+			this.say(this.config.messages.banned
+					.replace(/\{user\.name\}/g, subject_name)
+					.replace(/\{ban\.comment\}/g, ban_comment));
+			this.ttapi.bootUser(user.userid, banned_reason);
+			return;
+		}
 		this.say(this.greeting(user));
 	}
 };
