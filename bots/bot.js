@@ -18,7 +18,7 @@ Bot = function(configName) {
 	this.speechHandlers = {};
 	this.users = {};
 	this.useridsByName = {};
-	this.userNamesById = {};
+	this.usernamesById = {};
 	this.activity = {};
 	this.djs = {};
 	/** @type SongStats */
