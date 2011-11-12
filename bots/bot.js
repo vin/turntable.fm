@@ -4,6 +4,7 @@ var imports = {
 	repl: require('repl'),
 	ttapi: require('ttapi'),
 	conf: require('node-config'),
+	banlist: require('./banlist'),
 	djlist: require('./djlist'),
 	Store: require('./store').Store,
 	stats: require('./stats')
@@ -25,6 +26,7 @@ Bot = function(configName) {
 	this.greetings = {};
 	this.activity = {};
 	this.djList = new imports.djlist.DjList();
+	this.banList = new imports.banlist.BanList();
 };
 
 Bot.usage = function() {
@@ -58,6 +60,7 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
 	this.ttapi.on('roomChanged', this.initDjList.bind(this));
+	this.ttapi.on('roomChanged', this.initBanList.bind(this));
 	this.ttapi.on('deregistered', this.onDeregister.bind(this));
 	this.ttapi.on('add_dj', this.onAddDj.bind(this));
 	this.ttapi.on('rem_dj', this.onRemDj.bind(this));
@@ -78,6 +81,10 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['add-first'] = this.onAddFirst.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 	this.speechHandlers['remove'] = this.onRemove.bind(this);
+	this.speechHandlers['ban'] = this.onBan.bind(this);
+	this.speechHandlers['unban'] = this.onUnban.bind(this);
+	this.speechHandlers['bans'] = this.onBans.bind(this);
+	this.speechHandlers['banned'] = this.onBanned.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -324,6 +331,69 @@ Bot.prototype.onRemove = function(text, userid, username) {
 	this.onRemoveme(text, subjectid, subject_name);
 };
 
+Bot.prototype.onBan = function(text, userid, username) {
+	var args = Bot.splitCommand(text)[1];
+	if (!args) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>, <comment>");
+		return;
+	}
+	var split = args.split(/,(.+)/);
+	var subject_name = split[0];
+	var comment = split[1] || "";
+	var subjectid = this.useridsByName[subject_name];
+	this.banList.ban(subjectid, comment + " -- " + username + " " + new Date());
+	this.banList.save(this.config.banlist_filename);
+	this.say(this.config.messages.ban
+			.replace(/\{user\.name\}/g, subject_name)
+			.replace(/\{banner\.name\}/g, username)
+			.replace(/\{ban\.comment\}/g, comment));
+};
+
+Bot.prototype.onBans = function(text, userid, username) {
+	var bans = this.banList.list();
+	this.say(this.config.messages.bans
+			.replace(/\{ban\.count\}/g, Object.keys(bans).length)
+			.replace(/\{ban\.list\}/g, bans.map(this.lookupUsername.bind(this)).join(', ')));
+};
+
+Bot.prototype.onBanned = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	var comment = this.banList.query(subjectid);
+	if (!comment) {
+		this.say(this.config.messages.notBanned
+				.replace(/\{user\.name\}/g, subject_name));
+	} else {
+		this.say(this.config.messages.banned
+				.replace(/\{user\.name\}/g, subject_name)
+				.replace(/\{ban\.comment\}/g, comment));
+	}
+};
+
+Bot.prototype.onUnban = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	var comment = this.banList.query(subjectid);
+	if (!comment) {
+		this.say(this.config.messages.notBanned
+				.replace(/\{user\.name\}/g, subject_name));
+	} else {
+		this.banList.unban(subjectid);
+		this.banList.save(this.config.banlist_filename);
+		this.say(this.config.messages.unbanned
+				.replace(/\{user\.name\}/g, subject_name));
+	}
+};
+
+
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
 		console.dir(data);
@@ -393,6 +463,16 @@ Bot.prototype.onRoomInfo = function(data) {
 					this.users[data.room.metadata.current_dj]);
 			this.currentSong.updateVotes(data.room.metadata);
 		}
+	}
+};
+
+/** @param {RoomInfo} data */
+Bot.prototype.initBanList = function(data) {
+	this.banList = null;
+	if (data.success) {
+		BanList.fromFile(this.config.banlist_filename, data.room.roomid, function(banList) {
+			this.banList = banList;
+		}.bind(this));
 	}
 };
 
@@ -554,7 +634,11 @@ Bot.moderatorCommands = [
 	'list-on',
 	'list-off',
 	'remove',
-	'add-first'
+	'add-first',
+	'ban',
+	'bans',
+	'banned',
+	'unban',
 ];
 
 Bot.prototype.recordActivity = function(userid) {
