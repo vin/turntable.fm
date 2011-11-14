@@ -498,13 +498,15 @@ Bot.prototype.onRegistered = function(data) {
 	if (user.userid !== this.config.userid) {
 		this.recordActivity(user.userid);
 		this.refreshRoomInfo();
-		var ban_comment = this.banList.query(user.userid);
-		if (ban_comment) {
-			this.say(this.config.messages.banned
-					.replace(/\{user\.name\}/g, subject_name)
-					.replace(/\{ban\.comment\}/g, ban_comment));
-			this.ttapi.bootUser(user.userid, banned_reason);
-			return;
+		if (this.banList) {
+			var ban_comment = this.banList.query(user.userid);
+			if (ban_comment) {
+				this.say(this.config.messages.banned
+						.replace(/\{user\.name\}/g, subject_name)
+						.replace(/\{ban\.comment\}/g, ban_comment));
+				this.ttapi.bootUser(user.userid, banned_reason);
+				return;
+			}
 		}
 		this.say(this.greeting(user));
 	}
