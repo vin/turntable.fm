@@ -7,7 +7,6 @@ exports.conf = {
 	"usernames_filename": "usernames.json",
 	"djlist_filename": "djlist-{roomid}.json",
 	"banlist_filename": "banlist-{roomid}.json",
-	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
 		"defaultGreetings": [
@@ -55,5 +54,6 @@ exports.conf = {
 		"bans": "{ban.count} banned users: {ban.list}",
 		"wrongDj": "{right.name} is supposed to be up next.  {wrong.name}, please step down.",
 		"nextDj": "{user.name} is up next.",
+		"someMessage": "some-message-value"
 	}
 };
