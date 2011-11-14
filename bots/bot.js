@@ -243,10 +243,14 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 	}
 	if (last) {
 		var age_ms = new Date() - new Date(last);
-		var age_h = Math.floor(age_ms / 1000 / 3600);
+		var age_m = Math.floor(age_ms / 1000 / 60);
+		var age = age_m + " minutes";
+		if (age_m > 120) {
+			age = Math.floor(age_m / 60) + " hours";
+		}
 		this.say(this.config.messages.lastActivity
 				.replace(/\{user\.name\}/g, subject_name)
-				.replace(/\{age\}/g, age_h + " hours"));
+				.replace(/\{age\}/g, age));
 	} else {
 		this.say(this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name));
 	}
