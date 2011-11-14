@@ -23,6 +23,7 @@ Bot = function(configName) {
 	this.djs = {};
 	/** @type SongStats */
 	this.currentSong = null;
+	this.pendingGreetings = {};
 	this.greetings = {};
 	this.activity = {};
 	this.djList = new imports.djlist.DjList();
@@ -85,6 +86,11 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['unban'] = this.onUnban.bind(this);
 	this.speechHandlers['bans'] = this.onBans.bind(this);
 	this.speechHandlers['banned'] = this.onBanned.bind(this);
+	this.speechHandlers['greet'] = this.onGreet.bind(this);
+	this.speechHandlers['approve-greeting'] = this.onApproveGreeting.bind(this);
+	this.speechHandlers['show-greeting'] = this.onShowGreeting.bind(this);
+	this.speechHandlers['reject-greeting'] = this.onRejectGreeting.bind(this);
+	this.speechHandlers['pending-greetings'] = this.onPendingGreetings.bind(this);
 };
 
 Bot.prototype.readGreetings = function() {
@@ -394,6 +400,74 @@ Bot.prototype.onUnban = function(text, userid, username) {
 	}
 };
 
+Bot.prototype.onGreet = function(text, userid, username) {
+	var greeting = Bot.splitCommand(text)[1];
+	if (!greeting || greeting.indexOf("{user.name}") === -1) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <greeting> -- greeting must contain '{user.name}'.  Ex: " + Bot.splitCommand(text)[0] + " Hey {user.name}, what's up?");
+		return;
+	}
+	this.pendingGreetings[userid] = greeting;
+	this.say("(pending approval): " + greeting.replace(/\{user.name\}/g, username));
+};
+
+Bot.prototype.onApproveGreeting = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	if (subjectid && this.pendingGreetings[subjectid]) {
+		this.greetings[subjectid] = this.pendingGreetings[subjectid];
+		delete this.pendingGreetings[subjectid];
+		this.say(this.greeting({name: subject_name, userid: subjectid}));
+	}
+};
+
+Bot.prototype.onShowGreeting = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	if (!subjectid) {
+	       return;
+	}
+	if (this.pendingGreetings[subjectid]) {
+		this.say("(pending approval): " + this.pendingGreetings[subjectid].replace(/\{user.name\}/g, subject_name));
+	} else if (this.greetings[subjectid]) {
+		this.say("(approved): " + this.greetings[subjectid].replace(/\{user.name\}/g, subject_name));
+	}
+};
+
+Bot.prototype.onRejectGreeting = function(text, userid, username) {
+	var subject_name = Bot.splitCommand(text)[1];
+	if (!subject_name) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+		return;
+	}
+	var subjectid = this.useridsByName[subject_name];
+	if (!subjectid) {
+	       return;
+	}
+	if (subjectid in this.pendingGreetings) {
+		delete this.pendingGreetings[subjectid];
+		this.say(this.config.messages.pendingGreetingRejected.replace(/\{user.name\}/g, subject_name));
+	} else if (subjectid in this.greetings) {
+		delete this.greetings[subjectid];
+		this.say(this.config.messages.greetingRejected.replace(/\{user.name\}/g, subject_name));
+	} else {
+		this.say(this.config.messages.noGreeting.replace(/\{user.name\}/g, subject_name));
+	}
+};
+
+Bot.prototype.onPendingGreetings = function(text, userid, username) {
+	this.say(this.config.messages.pendingGreetings
+			.replace(/\{list\}/,
+			       	Object.keys(this.pendingGreetings).map(this.lookupUsername.bind(this)).join(', ')));
+};
+
 
 Bot.prototype.onRegistered = function(data) {
 	if (this.debug) {
@@ -648,6 +722,10 @@ Bot.moderatorCommands = [
 	'bans',
 	'banned',
 	'unban',
+	'approve-greeting',
+	'reject-greeting',
+	'show-greeting',
+	'pending-greetings'
 ];
 
 Bot.prototype.recordActivity = function(userid) {

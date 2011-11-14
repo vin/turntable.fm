@@ -54,6 +54,10 @@ exports.conf = {
 		"bans": "{ban.count} banned users: {ban.list}",
 		"wrongDj": "{right.name} is supposed to be up next.  {wrong.name}, please step down.",
 		"nextDj": "{user.name} is up next.",
-		"someMessage": "some-message-value"
+		"someMessage": "some-message-value",
+		"greetingRejected": "Greeting for {user.name} removed.",
+		"pendingGreetingRejected": "Pending greeting for {user.name} rejected.",
+		"noGreeting": "{user.name} doesn't have a personal greeting",
+		"pendingGreetings": "Users with proposed greetings pending moderator approval: {list}"
 	}
 };
