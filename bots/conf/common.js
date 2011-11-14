@@ -3,6 +3,7 @@ exports.conf = {
 	"userid": "fill this in from your turntableUserId cookie",
 	"roomid": "fill this in from TURNTABLE_ROOMID in view-source:turntable.fm/$ROOM",
 	"greetings_filename": "greetings.json",
+	"pending_greetings_filename": "greetings-pending.json",
 	"activity_filename": "activity.json",
 	"usernames_filename": "usernames.json",
 	"djlist_filename": "djlist-{roomid}.json",

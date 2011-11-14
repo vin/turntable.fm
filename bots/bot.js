@@ -98,6 +98,22 @@ Bot.prototype.readGreetings = function() {
 		this.greetings = data;
 		console.log('loaded %d greetings', Object.keys(this.greetings).length);
 	}.bind(this));
+	imports.Store.read(this.config.pending_greetings_filename, function(data) {
+		this.pendingGreetings = data;
+		console.log('loaded %d pending greetings', Object.keys(this.pendingGreetings).length);
+	}.bind(this));
+};
+
+Bot.prototype.writeGreetings = function() {
+	imports.Store.write(this.config.greetings_filename, this.greetings,
+		console.log.bind(this, 'saved %d greetings to %s',
+		       	Object.keys(this.greetings).length, this.config.greetings_filename));
+};
+
+Bot.prototype.writePendingGreetings = function() {
+	imports.Store.write(this.config.pending_greetings_filename, this.greetings,
+		console.log.bind(this, 'saved %d pending greetings to %s',
+		       	Object.keys(this.pendingGreetings).length, this.config.pending_greetings_filename));
 };
 
 Bot.prototype.readActivity = function() {
@@ -407,6 +423,7 @@ Bot.prototype.onGreet = function(text, userid, username) {
 		return;
 	}
 	this.pendingGreetings[userid] = greeting;
+	this.writePendingGreetings();
 	this.say("(pending approval): " + greeting.replace(/\{user.name\}/g, username));
 };
 
@@ -420,6 +437,8 @@ Bot.prototype.onApproveGreeting = function(text, userid, username) {
 	if (subjectid && this.pendingGreetings[subjectid]) {
 		this.greetings[subjectid] = this.pendingGreetings[subjectid];
 		delete this.pendingGreetings[subjectid];
+		this.writeGreetings();
+		this.writePendingGreetings();
 		this.say(this.greeting({name: subject_name, userid: subjectid}));
 	}
 };
@@ -453,9 +472,11 @@ Bot.prototype.onRejectGreeting = function(text, userid, username) {
 	}
 	if (subjectid in this.pendingGreetings) {
 		delete this.pendingGreetings[subjectid];
+		this.writePendingGreetings();
 		this.say(this.config.messages.pendingGreetingRejected.replace(/\{user.name\}/g, subject_name));
 	} else if (subjectid in this.greetings) {
 		delete this.greetings[subjectid];
+		this.writeGreetings();
 		this.say(this.config.messages.greetingRejected.replace(/\{user.name\}/g, subject_name));
 	} else {
 		this.say(this.config.messages.noGreeting.replace(/\{user.name\}/g, subject_name));
