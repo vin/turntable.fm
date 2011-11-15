@@ -31,7 +31,7 @@ exports.conf = {
 			"Thanks for the tunes {user.name}.  You played {plays} songs and got {gain} points and {lames} lames."
 		],
 		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility.",
-		"songSummary": "{song} by {artist}",
+		"songSummary": "{song} by {artist}: +{awesomes}, -{lames}",
 		"album": "{song} is on {album}",
 		"bonus": "{dj.name} just got a bonus from {user.name}",
 		"bonusAlreadyUsed": "Sorry, bonus already used by {user.name}.  My head is already boppin!",
