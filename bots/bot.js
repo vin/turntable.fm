@@ -268,7 +268,7 @@ Bot.prototype.lookupUsername = function(userid) {
 };
 
 Bot.prototype.onPlays = function(text, userid, username) {
-	var userid = bot.currentSong.dj.userid;
+	var userid = this.currentSong.dj.userid;
 	var subject_name = Bot.splitCommand(text)[1];
 	if (subject_name) {
 		userid = this.useridsByName[subject_name];
