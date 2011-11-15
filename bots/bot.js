@@ -40,6 +40,7 @@ Bot.prototype.onInitConfig = function(cb, err) {
 	if (!this.config.noRepl) {
 		var replContext = imports.repl.start(this.configName + "> ").context;
 		replContext.bot = this;
+		replContext.imports = imports;
 	}
 	this.debug = this.config.debug;
 	this.mute = this.config.mute;
@@ -75,6 +76,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['bonys'] = this.onBonus.bind(this);
 	this.speechHandlers['album'] = this.onAlbum.bind(this);
 	this.speechHandlers['last'] = this.onLast.bind(this);
+	this.speechHandlers['plays'] = this.onPlays.bind(this);
 	this.speechHandlers['list'] = this.onList.bind(this);
 	this.speechHandlers['list-on'] = this.onListOn.bind(this);
 	this.speechHandlers['list-off'] = this.onListOff.bind(this);
@@ -263,6 +265,18 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
 
 Bot.prototype.lookupUsername = function(userid) {
 	return this.usernamesById[userid] || "(unknown)";
+};
+
+Bot.prototype.onPlays = function(text, userid, username) {
+	var userid = bot.currentSong.dj.userid;
+	var subject_name = Bot.splitCommand(text)[1];
+	if (subject_name) {
+		userid = this.useridsByName[subject_name];
+	}
+	var stats = this.djs[userid];
+	if (stats) {
+		this.say(this.djSummary(stats));
+	}
 };
 
 Bot.prototype.onList = function(text, userid, username) {
