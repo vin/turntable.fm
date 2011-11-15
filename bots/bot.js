@@ -83,6 +83,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['add-first'] = this.onAddFirst.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
 	this.speechHandlers['remove'] = this.onRemove.bind(this);
+	this.speechHandlers['remove-first'] = this.onRemoveFirst.bind(this);
 	this.speechHandlers['ban'] = this.onBan.bind(this);
 	this.speechHandlers['unban'] = this.onUnban.bind(this);
 	this.speechHandlers['bans'] = this.onBans.bind(this);
@@ -366,6 +367,17 @@ Bot.prototype.onRemove = function(text, userid, username) {
 	}
 	var subjectid = this.useridsByName[subject_name];
 	this.onRemoveme(text, subjectid, subject_name);
+};
+
+Bot.prototype.onRemoveFirst = function(text, userid, username) {
+	var userid = this.djList.removeFirst;
+	if (userid) {
+		this.say(this.config.messages.listRemoved
+				.replace(/\{user\.name\}/g, this.lookupUsername(userid))
+				.replace(/\{position\}/g, 1));
+	} else {
+		this.say(this.config.messages.listEmpty);
+	}
 };
 
 Bot.prototype.onBan = function(text, userid, username) {
@@ -757,6 +769,7 @@ Bot.moderatorCommands = [
 	'list-reset',
 	'remove',
 	'add-first',
+	'remove-first',
 	'ban',
 	'bans',
 	'banned',

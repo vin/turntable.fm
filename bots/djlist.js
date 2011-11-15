@@ -46,6 +46,13 @@ DjList.prototype.addFirst = function(userid) {
 	return i;
 };
 
+/**
+  * Removes and returns the first user from the list.
+  */
+DjList.prototype.removeFirst = function() {
+	return this.list.shift();
+};
+
 /** Remove the given userid from the list and return the index it was removed
   * from, or -1 if it was not on the list.
   */
