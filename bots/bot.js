@@ -386,10 +386,10 @@ Bot.prototype.onRemove = function(text, userid, username) {
 };
 
 Bot.prototype.onRemoveFirst = function(text, userid, username) {
-	var userid = this.djList.removeFirst;
-	if (userid) {
+	var removed_userid = this.djList.removeFirst();
+	if (removed_userid) {
 		this.say(this.config.messages.listRemoved
-				.replace(/\{user\.name\}/g, this.lookupUsername(userid))
+				.replace(/\{user\.name\}/g, this.lookupUsername(removed_userid))
 				.replace(/\{position\}/g, 1));
 	} else {
 		this.say(this.config.messages.listEmpty);
