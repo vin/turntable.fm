@@ -430,11 +430,11 @@ Bot.prototype.onUnban = function(text, userid, username) {
 
 Bot.prototype.onGreet = function(text, userid, username) {
 	var greeting = Bot.splitCommand(text)[1];
-	if (!greeting || greeting.indexOf("{user.name}") === -1) {
-		this.say("Usage: " + Bot.splitCommand(text)[0] + " <greeting> -- greeting must contain '{user.name}'.  Ex: " + Bot.splitCommand(text)[0] + " Hey {user.name}, what's up?");
+	if (!greeting || greeting.indexOf(username) === -1) {
+		this.say("Usage: " + Bot.splitCommand(text)[0] + " <greeting> -- greeting must contain your name.")
 		return;
 	}
-	this.pendingGreetings[userid] = greeting;
+	this.pendingGreetings[userid] = greeting.replace(username, "{user.name}");
 	this.writePendingGreetings();
 	this.say("(pending approval): " + greeting.replace(/\{user.name\}/g, username));
 };
