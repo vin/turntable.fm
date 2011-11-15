@@ -48,6 +48,7 @@ exports.conf = {
 		"listAlreadyListed": "{user.name} is already #{position} on the list.",
 		"listRemoved": "{user.name} has been removed from the DJ list.",
 		"listRemoveNotListed": "{user.name} is not on the DJ list.",
+		"listReset": "The dj list has been cleared.",
 		"banned": "{user.name} is banned: {ban.comment}",
 		"notBanned": "{user.name} is not banned.",
 		"unbanned": "{user.name} has been unbanned.",

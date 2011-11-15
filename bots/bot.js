@@ -78,6 +78,7 @@ Bot.prototype.bindHandlers = function() {
 	this.speechHandlers['list'] = this.onList.bind(this);
 	this.speechHandlers['list-on'] = this.onListOn.bind(this);
 	this.speechHandlers['list-off'] = this.onListOff.bind(this);
+	this.speechHandlers['list-reset'] = this.onListReset.bind(this);
 	this.speechHandlers['addme'] = this.onAddme.bind(this);
 	this.speechHandlers['add-first'] = this.onAddFirst.bind(this);
 	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
@@ -290,6 +291,13 @@ Bot.prototype.onListOff = function(text, userid, username) {
 		this.say(this.config.messages.listOff);
 	} else {
 		this.say(this.config.messages.listAlreadyOff);
+	}
+};
+
+Bot.prototype.onListReset = function(text, userid, username) {
+	if (this.djList) {
+		this.djList.list = [];
+		this.say(this.config.messages.listReset);
 	}
 };
 
@@ -743,6 +751,7 @@ Bot.bareCommands = [
 Bot.moderatorCommands = [
 	'list-on',
 	'list-off',
+	'list-reset',
 	'remove',
 	'add-first',
 	'ban',
