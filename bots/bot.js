@@ -112,7 +112,7 @@ Bot.prototype.writeGreetings = function() {
 };
 
 Bot.prototype.writePendingGreetings = function() {
-	imports.Store.write(this.config.pending_greetings_filename, this.greetings,
+	imports.Store.write(this.config.pending_greetings_filename, this.pendingGreetings,
 		console.log.bind(this, 'saved %d pending greetings to %s',
 		       	Object.keys(this.pendingGreetings).length, this.config.pending_greetings_filename));
 };
