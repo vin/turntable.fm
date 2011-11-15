@@ -275,7 +275,9 @@ Bot.prototype.onPlays = function(text, userid, username) {
 	}
 	var stats = this.djs[userid];
 	if (stats) {
-		this.say(this.djSummary(stats));
+		this.say(this.config.messages.plays
+				.replace(/\{user\.name\}/g, stats.user.name)
+				.replace(/\{plays\}/g, stats.plays));
 	}
 };
 
@@ -705,7 +707,6 @@ Bot.prototype.djSummary = function(stats) {
 		.replace(/\{lames\}/g, stats.lames)
 		.replace(/\{gain\}/g, stats.gain)
 		.replace(/\{plays\}/g, stats.plays);
-
 };
 
 Bot.prototype.onRemDj = function(data) {

@@ -30,6 +30,7 @@ exports.conf = {
 			"{user.name} played {plays} songs, gaining {gain} points (and got lamed {lames} times).",
 			"Thanks for the tunes {user.name}.  You played {plays} songs and got {gain} points and {lames} lames."
 		],
+		"plays": "{user.name} has played {plays} songs.",
 		"newModerator": "{user.name} is now a moderator in {room.name}.  With great power comes great responsibility.",
 		"songSummary": "{song} by {artist}: +{awesomes}, -{lames}",
 		"album": "{song} is on {album}",
