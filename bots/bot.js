@@ -198,7 +198,10 @@ Bot.prototype.onBonus = function(text, userid, username) {
 	if (!this.currentSong) {
 	       return;
 	}
-	if (this.currentSong.bonusBy) {
+	if (this.currentSong.dj.userid === userid) {
+		this.say(this.config.messages.selfBonus
+				.replace(/{user\.name\}/g, username));
+	} else if (this.currentSong.bonusBy) {
 		this.say(this.config.messages.bonusAlreadyUsed
 				.replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
 	} else {

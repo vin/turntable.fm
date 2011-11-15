@@ -35,6 +35,7 @@ exports.conf = {
 		"album": "{song} is on {album}",
 		"bonus": "{dj.name} just got a bonus from {user.name}",
 		"bonusAlreadyUsed": "Sorry, bonus already used by {user.name}.  My head is already boppin!",
+		"selfBonus": "Sorry, {user.name}, you can't give yourself a bonus.",
 		"lastActivity": "It's been {age} since I saw {user.name}",
 		"lastActivityUnknown": "Hmm, I haven't seen {user.name}",
 		"listInactive": "There is no list.  Fastest-fingers.",
