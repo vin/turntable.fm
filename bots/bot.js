@@ -15,7 +15,9 @@ Bot = function(configName) {
 	this.configName = configName || process.argv[2] || Bot.usage();
 	this.config = {};
 	this.logChats = false;
-	this.speechHandlers = {};
+	this.commandHandlers = {};
+	this.moderatorCommandHandlers = {};
+	this.ownerCommandHandlers = {};
 	this.users = {};
 	this.useridsByName = {};
 	this.usernamesById = {};
@@ -70,32 +72,32 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('newsong', this.onNewSong.bind(this));
 	this.ttapi.on('nosong', this.onNoSong.bind(this));
 	this.ttapi.on('update_votes', this.onUpdateVotes.bind(this));
-	this.speechHandlers['help'] = this.onHelp.bind(this);
-	this.speechHandlers['commands'] = this.onHelpCommands.bind(this);
-	this.speechHandlers['mod-commands'] = this.onHelpModCommands.bind(this);
-	this.speechHandlers['bonus'] = this.onBonus.bind(this);
-	this.speechHandlers['bonys'] = this.onBonus.bind(this);
-	this.speechHandlers['album'] = this.onAlbum.bind(this);
-	this.speechHandlers['last'] = this.onLast.bind(this);
-	this.speechHandlers['plays'] = this.onPlays.bind(this);
-	this.speechHandlers['list'] = this.onList.bind(this);
-	this.speechHandlers['list-on'] = this.onListOn.bind(this);
-	this.speechHandlers['list-off'] = this.onListOff.bind(this);
-	this.speechHandlers['list-reset'] = this.onListReset.bind(this);
-	this.speechHandlers['addme'] = this.onAddme.bind(this);
-	this.speechHandlers['add-first'] = this.onAddFirst.bind(this);
-	this.speechHandlers['removeme'] = this.onRemoveme.bind(this);
-	this.speechHandlers['remove'] = this.onRemove.bind(this);
-	this.speechHandlers['remove-first'] = this.onRemoveFirst.bind(this);
-	this.speechHandlers['ban'] = this.onBan.bind(this);
-	this.speechHandlers['unban'] = this.onUnban.bind(this);
-	this.speechHandlers['bans'] = this.onBans.bind(this);
-	this.speechHandlers['banned'] = this.onBanned.bind(this);
-	this.speechHandlers['greet'] = this.onGreet.bind(this);
-	this.speechHandlers['approve-greeting'] = this.onApproveGreeting.bind(this);
-	this.speechHandlers['show-greeting'] = this.onShowGreeting.bind(this);
-	this.speechHandlers['reject-greeting'] = this.onRejectGreeting.bind(this);
-	this.speechHandlers['pending-greetings'] = this.onPendingGreetings.bind(this);
+	this.commandHandlers['help'] = this.onHelp;
+	this.commandHandlers['commands'] = this.onHelpCommands;
+	this.commandHandlers['mod-commands'] = this.onHelpModCommands;
+	this.commandHandlers['bonus'] = this.onBonus;
+	this.commandHandlers['bonys'] = this.onBonus;
+	this.commandHandlers['album'] = this.onAlbum;
+	this.commandHandlers['last'] = this.onLast;
+	this.commandHandlers['plays'] = this.onPlays;
+	this.commandHandlers['list'] = this.onList;
+	this.moderatorCommandHandlers['list-on'] = this.onListOn;
+	this.moderatorCommandHandlers['list-off'] = this.onListOff;
+	this.moderatorCommandHandlers['list-reset'] = this.onListReset;
+	this.commandHandlers['addme'] = this.onAddme;
+	this.moderatorCommandHandlers['add-first'] = this.onAddFirst;
+	this.commandHandlers['removeme'] = this.onRemoveme;
+	this.moderatorCommandHandlers['remove'] = this.onRemove;
+	this.moderatorCommandHandlers['remove-first'] = this.onRemoveFirst;
+	this.moderatorCommandHandlers['ban'] = this.onBan;
+	this.moderatorCommandHandlers['unban'] = this.onUnban;
+	this.moderatorCommandHandlers['bans'] = this.onBans;
+	this.moderatorCommandHandlers['banned'] = this.onBanned;
+	this.commandHandlers['greet'] = this.onGreet;
+	this.moderatorCommandHandlers['approve-greeting'] = this.onApproveGreeting;
+	this.moderatorCommandHandlers['show-greeting'] = this.onShowGreeting;
+	this.moderatorCommandHandlers['reject-greeting'] = this.onRejectGreeting;
+	this.moderatorCommandHandlers['pending-greetings'] = this.onPendingGreetings;
 };
 
 Bot.prototype.readGreetings = function() {
@@ -170,13 +172,13 @@ Bot.prototype.onSpeak = function(data) {
         } else if (Bot.bareCommands.indexOf(data.text) === -1) { // bare commands must match the entire text line
                 return;
         }
-	if (Bot.moderatorCommands.indexOf(command) !== -1) {
-		if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) === -1) {
-			return;
-		}
+	var handler = null;
+	if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) !== -1) {
+		handler = handler || this.moderatorCommandHandlers[command];
 	}
-	if (command in this.speechHandlers) {
-                this.speechHandlers[command](data.text, data.userid, data.name);
+	handler = handler || this.commandHandlers[command];
+	if (handler) {
+                handler.call(this, data.text, data.userid, data.name);
 	}
 };
 
@@ -186,15 +188,13 @@ Bot.prototype.onHelp = function() {
 
 Bot.prototype.onHelpCommands = function() {
 	this.say('commands: ' +
-			Object.keys(this.speechHandlers)
-				.filter(function(s) { return Bot.moderatorCommands.indexOf(s) === -1})
+			Object.keys(this.commandHandlers)
 				.map(function(s) { return "*" + s; }).join(', '));
 };
 
 Bot.prototype.onHelpModCommands = function() {
 	this.say('moderator commands: ' +
-			Object.keys(this.speechHandlers)
-				.filter(function(s) { return Bot.moderatorCommands.indexOf(s) !== -1})
+			Object.keys(this.moderatorCommandHandlers)
 				.map(function(s) { return "*" + s; }).join(', '));
 };
 
@@ -784,23 +784,6 @@ Bot.prototype.onNoSong = function(data) {
 
 Bot.bareCommands = [
 	'help'
-];
-
-Bot.moderatorCommands = [
-	'list-on',
-	'list-off',
-	'list-reset',
-	'remove',
-	'add-first',
-	'remove-first',
-	'ban',
-	'bans',
-	'banned',
-	'unban',
-	'approve-greeting',
-	'reject-greeting',
-	'show-greeting',
-	'pending-greetings'
 ];
 
 Bot.prototype.recordActivity = function(userid) {
