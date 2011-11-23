@@ -59,6 +59,7 @@ Bot.prototype.start = function(cb) {
 Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('speak', this.onSpeak.bind(this));
 	this.ttapi.on('registered', this.onRegistered.bind(this));
+	this.ttapi.on('registered', this.onRegisteredFan.bind(this));
 	this.ttapi.on('new_moderator', this.onNewModerator.bind(this));
 	this.ttapi.on('roomChanged', this.onRoomInfo.bind(this));
 	this.ttapi.on('roomChanged', this.initDjList.bind(this));
@@ -552,6 +553,13 @@ Bot.prototype.onRegistered = function(data) {
 			}
 		}
 		this.say(this.greeting(user));
+	}
+};
+
+Bot.prototype.onRegisteredFan = function(data) {
+	user = data.user[0];
+	if (user.userid !== this.config.userid) {
+		this.ttapi.becomeFan(user.userid);
 	}
 };
 
