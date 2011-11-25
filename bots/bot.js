@@ -16,7 +16,7 @@ Bot = function(configName) {
 	this.config = {};
 	this.logChats = false;
 	this.commandHandlers = {};
-	this.moderatorCommandHandlers = {};
+	this.friendCommandHandlers = {};
 	this.ownerCommandHandlers = {};
 	this.users = {};
 	this.useridsByName = {};
@@ -74,30 +74,32 @@ Bot.prototype.bindHandlers = function() {
 	this.ttapi.on('update_votes', this.onUpdateVotes.bind(this));
 	this.commandHandlers['help'] = this.onHelp;
 	this.commandHandlers['commands'] = this.onHelpCommands;
-	this.commandHandlers['mod-commands'] = this.onHelpModCommands;
+	this.commandHandlers['friend-commands'] = this.onHelpFriendCommands;
 	this.commandHandlers['bonus'] = this.onBonus;
 	this.commandHandlers['bonys'] = this.onBonus;
 	this.commandHandlers['album'] = this.onAlbum;
 	this.commandHandlers['last'] = this.onLast;
 	this.commandHandlers['plays'] = this.onPlays;
 	this.commandHandlers['list'] = this.onList;
-	this.moderatorCommandHandlers['list-on'] = this.onListOn;
-	this.moderatorCommandHandlers['list-off'] = this.onListOff;
-	this.moderatorCommandHandlers['list-reset'] = this.onListReset;
+	this.friendCommandHandlers['list-on'] = this.onListOn;
+	this.friendCommandHandlers['list-off'] = this.onListOff;
+	this.friendCommandHandlers['list-reset'] = this.onListReset;
 	this.commandHandlers['addme'] = this.onAddme;
-	this.moderatorCommandHandlers['add-first'] = this.onAddFirst;
+	this.friendCommandHandlers['add-first'] = this.onAddFirst;
 	this.commandHandlers['removeme'] = this.onRemoveme;
-	this.moderatorCommandHandlers['remove'] = this.onRemove;
-	this.moderatorCommandHandlers['remove-first'] = this.onRemoveFirst;
-	this.moderatorCommandHandlers['ban'] = this.onBan;
-	this.moderatorCommandHandlers['unban'] = this.onUnban;
-	this.moderatorCommandHandlers['bans'] = this.onBans;
-	this.moderatorCommandHandlers['banned'] = this.onBanned;
+	this.friendCommandHandlers['remove'] = this.onRemove;
+	this.friendCommandHandlers['remove-first'] = this.onRemoveFirst;
+	this.friendCommandHandlers['ban'] = this.onBan;
+	this.friendCommandHandlers['unban'] = this.onUnban;
+	this.friendCommandHandlers['bans'] = this.onBans;
+	this.friendCommandHandlers['banned'] = this.onBanned;
 	this.commandHandlers['greet'] = this.onGreet;
-	this.moderatorCommandHandlers['approve-greeting'] = this.onApproveGreeting;
-	this.moderatorCommandHandlers['show-greeting'] = this.onShowGreeting;
-	this.moderatorCommandHandlers['reject-greeting'] = this.onRejectGreeting;
-	this.moderatorCommandHandlers['pending-greetings'] = this.onPendingGreetings;
+	this.friendCommandHandlers['approve-greeting'] = this.onApproveGreeting;
+	this.friendCommandHandlers['show-greeting'] = this.onShowGreeting;
+	this.friendCommandHandlers['reject-greeting'] = this.onRejectGreeting;
+	this.friendCommandHandlers['pending-greetings'] = this.onPendingGreetings;
+	this.ownerCommandHandlers['owners'] = this.onOwners;
+	this.friendCommandHandlers['friends'] = this.onFriends;
 };
 
 Bot.prototype.readGreetings = function() {
@@ -173,8 +175,12 @@ Bot.prototype.onSpeak = function(data) {
                 return;
         }
 	var handler = null;
-	if (this.roomInfo.room.metadata.moderator_id.indexOf(data.userid) !== -1) {
-		handler = handler || this.moderatorCommandHandlers[command];
+	if (this.config.owners[data.userid]) {
+		handler = handler || this.ownerCommandHandlers[command];
+		handler = handler || this.friendCommandHandlers[command];
+	}
+	if (this.config.friends[data.userid]) {
+		handler = handler || this.friendCommandHandlers[command];
 	}
 	handler = handler || this.commandHandlers[command];
 	if (handler) {
@@ -192,11 +198,22 @@ Bot.prototype.onHelpCommands = function() {
 				.map(function(s) { return "*" + s; }).join(', '));
 };
 
-Bot.prototype.onHelpModCommands = function() {
-	this.say('moderator commands: ' +
-			Object.keys(this.moderatorCommandHandlers)
+Bot.prototype.onHelpFriendCommands = function() {
+	this.say('friend commands: ' +
+			Object.keys(this.friendCommandHandlers)
 				.map(function(s) { return "*" + s; }).join(', '));
 };
+
+Bot.prototype.onOwners = function() {
+	this.say('my owners are: ' +
+			Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '));
+};
+
+Bot.prototype.onFriends = function() {
+	this.say('my friends are: ' +
+			Object.keys(this.config.friends).map(this.lookupUsername.bind(this)).join(', '));
+};
+
 
 Bot.prototype.onBonus = function(text, userid, username) {
 	if (!this.currentSong) {
@@ -665,7 +682,7 @@ Bot.prototype.onDeregister = function(data) {
 };
 
 Bot.prototype.say = function(msg) {
-	if (!msg) { return; }
+	if (!msg || !this.roomInfo) { return; }
 	var message = msg
 		.replace(/\{room\.name\}/g, this.roomInfo.room.name)
 		.replace(/\{bot\.name\}/g, this.lookupUsername(this.config.userid));

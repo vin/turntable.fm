@@ -8,6 +8,10 @@ exports.conf = {
 	"usernames_filename": "usernames.json",
 	"djlist_filename": "djlist-{roomid}.json",
 	"banlist_filename": "banlist-{roomid}.json",
+	"owners": {
+	},
+	"friends": {
+	},
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
 		"defaultGreetings": [
