@@ -214,7 +214,7 @@ Bot.prototype.onOwners = function() {
 
 Bot.prototype.onFriends = function() {
 	this.say('my friends are: ' +
-			Object.keys(this.config.friends).map(this.lookupUsername.bind(this)).join(', '));
+			Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '));
 };
 
 
