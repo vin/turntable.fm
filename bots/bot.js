@@ -85,6 +85,7 @@ Bot.prototype.bindHandlers = function() {
 	this.friendCommandHandlers['list-on'] = this.onListOn;
 	this.friendCommandHandlers['list-off'] = this.onListOff;
 	this.friendCommandHandlers['list-reset'] = this.onListReset;
+	this.friendCommandHandlers['reset-list'] = this.onListReset;
 	this.commandHandlers['addme'] = this.onAddme;
 	this.friendCommandHandlers['add-first'] = this.onAddFirst;
 	this.commandHandlers['removeme'] = this.onRemoveme;
@@ -337,6 +338,7 @@ Bot.prototype.onListOff = function(text, userid, username) {
 Bot.prototype.onListReset = function(text, userid, username) {
 	if (this.djList) {
 		this.djList.list = [];
+		this.djList.save(this.config.djlist_filename);
 		this.say(this.config.messages.listReset);
 	}
 };
