@@ -288,6 +288,17 @@ Bot.prototype.lookupUsername = function(userid) {
 	return this.usernamesById[userid] || "(unknown)";
 };
 
+Bot.prototype.lookupUsernameWithIdleStars = function(userid) {
+	var last = this.activity[userid];
+	var age_ms = new Date() - new Date(last);
+	var age_m = Math.floor(age_ms / 1000 / 60);
+	var username = this.lookupUsername(userid);
+	if (age_m > 4) {
+		return username + "*";
+	};
+	return username;
+};
+
 Bot.prototype.onPlays = function(text, userid, username) {
 	var userid = this.currentSong.dj.userid;
 	var subject_name = Bot.splitCommand(text)[1];
@@ -309,7 +320,7 @@ Bot.prototype.onList = function(text, userid, username) {
 	}
 	if (this.djList.length()) {
 		this.say(this.config.messages.list
-				.replace(/\{list\}/g, this.djList.list.map(this.lookupUsername.bind(this)).join(', ')));
+				.replace(/\{list\}/g, this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).join(', ')));
 	} else {
 		this.say(this.config.messages.listEmpty);
 	}
