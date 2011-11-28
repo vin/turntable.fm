@@ -16,6 +16,7 @@ Bot = function(configName) {
 	this.config = {};
 	this.logChats = false;
 	this.commandHandlers = {};
+	this.hiddenCommandHandlers = {};
 	this.friendCommandHandlers = {};
 	this.ownerCommandHandlers = {};
 	this.users = {};
@@ -76,7 +77,7 @@ Bot.prototype.bindHandlers = function() {
 	this.commandHandlers['commands'] = this.onHelpCommands;
 	this.commandHandlers['friend-commands'] = this.onHelpFriendCommands;
 	this.commandHandlers['bonus'] = this.onBonus;
-	this.commandHandlers['bonys'] = this.onBonus;
+	this.hiddenCommandHandlers['bonys'] = this.onBonus;
 	this.commandHandlers['album'] = this.onAlbum;
 	this.commandHandlers['last'] = this.onLast;
 	this.commandHandlers['plays'] = this.onPlays;
@@ -183,6 +184,7 @@ Bot.prototype.onSpeak = function(data) {
 		handler = handler || this.friendCommandHandlers[command];
 	}
 	handler = handler || this.commandHandlers[command];
+	handler = handler || this.hiddenCommandHandlers[command];
 	if (handler) {
                 handler.call(this, data.text, data.userid, data.name);
 	}
