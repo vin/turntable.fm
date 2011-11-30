@@ -30,9 +30,10 @@ running state and/or interact with it and even modify it on the fly.
 Thanks to Alain Gilbert for providing the ttapi library; I never would have gotten
 off the ground without his work.
 
-This bot is essentially a rewrite of Isaiah Greene's (aka thelonius) #sickness
-bot; he shared the code with me and he and I collaborated on that a bit before I
-started writing this one from scratch.
+This bot is essentially a rewrite of [Isaiah Greene](http://twitter.com/isaiahgreene)'s
+(aka thelonius) #sickness bot; he shared the code with me and we
+collaborated on that a bit before I started writing this one from scratch.  We still plan
+on working together on this, probably just once it reaches feature parity with #sickness.
 
 ## Contact
 
