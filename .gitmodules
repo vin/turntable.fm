@@ -9,4 +9,4 @@
 	url = git://github.com/miksago/node-websocket-server.git
 [submodule "node-config"]
 	path = node-config
-	url = git://github.com/ArtS/node-config.git
+	url = git://github.com/vin/node-config.git
