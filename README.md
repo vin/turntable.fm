@@ -44,5 +44,5 @@ I'm [Vineet Kumar](https://plus.google.com/u/0/110814948174584766402/about)
 If you're deploying a bot based on this code and/or working on a derivative, I'd love
 to hear about it!  I'm also very open to collaborators working to improve and add to
 this code base also.  Give me a shout, either here on github,
-[twitter](http://twitter.com/vineet), [email](vineet@doorstop.net), or
+[twitter](http://twitter.com/vineet), [email](mailto:vineet@doorstop.net), or
 wherever.  I'm [all over the place](http://claimid.com/vineet).
