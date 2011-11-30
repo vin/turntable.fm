@@ -17,6 +17,7 @@ checkout; just make multiple config files and override what you want in each one
 
 The main things you'll need to override are `auth` and `userid`.  If you specify a
 `roomid`, the bot will automatically join that room on startup.  If not, you can 
+use `bot.ttapi.roomRegister` interactively on the REPL.
 
 ## REPL
 
