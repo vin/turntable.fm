@@ -70,6 +70,7 @@ Bot.prototype.bindHandlers = function() {
   this.ttapi.on('deregistered', this.onDeregister.bind(this));
   this.ttapi.on('add_dj', this.onAddDj.bind(this));
   this.ttapi.on('rem_dj', this.onRemDj.bind(this));
+  this.ttapi.on('snagged', this.onSnagged.bind(this));
   this.ttapi.on('newsong', this.onNewSong.bind(this));
   this.ttapi.on('endsong', this.onEndSong.bind(this));
   this.ttapi.on('nosong', this.onNoSong.bind(this));
@@ -721,6 +722,7 @@ Bot.prototype.onAddDj = function(data) {
     console.dir(data);
   }
   var user = data.user[0];
+  this.recordActivity(user.userid);
   this.djs[user.userid] = new imports.stats.DjStats(user);
   if (this.djList.active) {
     var next = this.djList.next();
@@ -753,6 +755,7 @@ Bot.prototype.onRemDj = function(data) {
     console.dir(data);
   }
   var user = data.user[0];
+  this.recordActivity(user.userid);
   var stats = this.djs[user.userid];
   if (stats) {
     stats.update(user);
@@ -766,6 +769,13 @@ Bot.prototype.onRemDj = function(data) {
           .replace(/\{user.name\}/, this.lookupUsername(next)));
     };
   }
+};
+
+Bot.prototype.onSnagged = function(data) {
+  if (this.debug) {
+    console.dir(data);
+  }
+  this.recordActivity(data.userid);
 };
 
 Bot.prototype.onNewSong = function(data) {
