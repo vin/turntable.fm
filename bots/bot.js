@@ -221,7 +221,7 @@ Bot.prototype.onFriends = function() {
 
 
 Bot.prototype.onBonus = function(text, userid, username) {
-  if (!this.currentSong) {
+  if (!this.currentSong || !this.currentSong.song) {
          return;
   }
   if (this.currentSong.dj.userid === userid) {
