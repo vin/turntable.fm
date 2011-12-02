@@ -268,14 +268,8 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
     this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
-  var last = null;
-  var userid = this.useridsByName[subject_name];
-  if (userid) {
-    last = this.activity[userid];
-  }
-  if (last) {
-    var age_ms = new Date() - new Date(last);
-    var age_m = Math.floor(age_ms / 1000 / 60);
+  var age_m = this.last(subject_name);
+  if (age_m >= 0) {
     var age = age_m + " minutes";
     if (age_m > 120) {
       age = Math.floor(age_m / 60) + " hours";
@@ -288,15 +282,27 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
   }
 };
 
+Bot.prototype.last = function(username) {
+  var userid = this.useridsByName[username];
+  if (!userid) {
+    return -1;
+  }
+  var last = this.activity[userid];
+  if (!last) {
+    return -1;
+  }
+  var age_ms = new Date() - new Date(last);
+  var age_m = Math.floor(age_ms / 1000 / 60);
+  return age_m;
+};
+
 Bot.prototype.lookupUsername = function(userid) {
   return this.usernamesById[userid] || "(unknown)";
 };
 
 Bot.prototype.lookupUsernameWithIdleStars = function(userid) {
-  var last = this.activity[userid];
-  var age_ms = new Date() - new Date(last);
-  var age_m = Math.floor(age_ms / 1000 / 60);
   var username = this.lookupUsername(userid);
+  var age_m = this.last(username);
   if (age_m > 4) {
     return username + "*";
   };
