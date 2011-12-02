@@ -1,2 +1,6 @@
 banlist-*.json
 djlist-*.json
+activity.json
+usernames.json
+greetings.json
+greetings-pending.json
