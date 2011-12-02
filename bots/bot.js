@@ -106,15 +106,17 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['friends'] = this.onFriends;
 };
 
+var nop = function() {};
+
 Bot.prototype.readGreetings = function() {
   imports.Store.read(this.config.greetings_filename, function(data) {
     this.greetings = data;
     console.log('loaded %d greetings', Object.keys(this.greetings).length);
-  }.bind(this));
+  }.bind(this), nop);
   imports.Store.read(this.config.pending_greetings_filename, function(data) {
     this.pendingGreetings = data;
     console.log('loaded %d pending greetings', Object.keys(this.pendingGreetings).length);
-  }.bind(this));
+  }.bind(this), nop);
 };
 
 Bot.prototype.writeGreetings = function() {
@@ -133,7 +135,7 @@ Bot.prototype.readActivity = function() {
   imports.Store.read(this.config.activity_filename, function(data) {
     this.activity = data;
     console.log('loaded %d activity records', Object.keys(this.activity).length);
-  }.bind(this));
+  }.bind(this), nop);
 };
 
 Bot.prototype.writeActivity = function() {
@@ -150,7 +152,7 @@ Bot.prototype.readUsernames = function() {
       this.useridsByName[this.usernamesById[userid]] = userid;
     }
     console.log('loaded %d usernames', Object.keys(this.usernamesById).length);
-  }.bind(this));
+  }.bind(this), nop);
 };
 
 Bot.prototype.writeUsernames = function() {
