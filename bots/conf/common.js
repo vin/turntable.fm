@@ -66,6 +66,15 @@ exports.conf = {
 		"greetingRejected": "Greeting for {user.name} removed.",
 		"pendingGreetingRejected": "Pending greeting for {user.name} rejected.",
 		"noGreeting": "{user.name} doesn't have a personal greeting",
-		"pendingGreetings": "Users with proposed greetings pending moderator approval: {list}"
+		"pendingGreetings": "Users with proposed greetings pending moderator approval: {list}",
+		"milestones": {
+			"hundred": "{user.name} just reached {points} points. Nice!",
+			"thousand": "Congrats on, reaching {points}, {user.name}!",
+			"100": "{user.name} just reached {points} points. Bear up!",
+			"300": "{user.name} just reached {points} points. Try on a cat suit!",
+			"600": "{user.name} just reached {points} points. Moosehead!",
+			"1000": "{user.name} just reached {points} points. It's monkey time!",
+			"10000": "Woohoo! Welcome {user.name} to the elite 10k propellerhead club!"
+		}
 	}
 };
