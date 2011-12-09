@@ -221,6 +221,18 @@ Bot.prototype.onFriends = function() {
       Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '));
 };
 
+Bot.prototype.bonusCb = function(userid, data) {
+  if (this.debug) {
+    console.dir(data);
+  }
+  if (!data.success) {
+    return;
+  }
+  this.currentSong.bonusBy = userid;
+  this.say(this.config.messages.bonus
+      .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy))
+      .replace(/\{dj.name\}/g, this.currentSong.dj.name));
+};
 
 Bot.prototype.onBonus = function(text, userid, username) {
   if (!this.currentSong || !this.currentSong.song) {
@@ -233,11 +245,7 @@ Bot.prototype.onBonus = function(text, userid, username) {
     this.say(this.config.messages.bonusAlreadyUsed
         .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
   } else {
-    this.ttapi.vote('up');
-    this.currentSong.bonusBy = userid;
-    this.say(this.config.messages.bonus
-        .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy))
-        .replace(/\{dj.name\}/g, this.currentSong.dj.name));
+    this.ttapi.vote('up', this.bonusCb.bind(this, userid));
   }
 };
 
