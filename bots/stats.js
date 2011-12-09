@@ -2,14 +2,14 @@
 
 SongStats = function(song, dj) {
   this.song = song;
-  this.votes = {};
+  this.votes = {upvotes: 0, downvotes: 0, votelog: []};
   this.dj = dj;
 };
 
 SongStats.prototype.updateVotes = function(votes) {
   this.votes.upvotes = votes.upvotes;
   this.votes.downvotes = votes.downvotes;
-  this.votes.votelog = votes.votelog;
+  this.votes.votelog = this.votes.votelog.concat(votes.votelog);
 };
 
 DjStats = function(user) {
