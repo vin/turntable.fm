@@ -807,7 +807,7 @@ Bot.prototype.onNewSong = function(data) {
   var userid = data.room.metadata.current_dj;
   var djstats = this.djs[userid] || (this.djs[userid] = new imports.stats.DjStats(this.users[userid]));
   djstats.play(song);
-  this.currentSong = new imports.stats.SongStats(song, this.users[song.djid]);
+  this.currentSong = new imports.stats.SongStats(song, this.users[userid]);
 };
 
 Bot.prototype.onEndSong = function() {
@@ -820,6 +820,7 @@ Bot.prototype.onEndSong = function() {
 	.replace(/\{song\}/g, this.currentSong.song.metadata.song)
 	.replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
 	.replace(/\{album\}/g, this.currentSong.song.metadata.album));
+    this.currentSong = null;
   }
 };
 
