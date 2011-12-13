@@ -93,6 +93,7 @@ Bot.prototype.bindHandlers = function() {
   this.commandHandlers['removeme'] = this.onRemoveme;
   this.friendCommandHandlers['remove'] = this.onRemove;
   this.friendCommandHandlers['remove-first'] = this.onRemoveFirst;
+  this.friendCommandHandlers['kick'] = this.onKick;
   this.friendCommandHandlers['ban'] = this.onBan;
   this.friendCommandHandlers['unban'] = this.onUnban;
   this.friendCommandHandlers['bans'] = this.onBans;
@@ -445,6 +446,20 @@ Bot.prototype.onRemoveFirst = function(text, userid, username) {
   } else {
     this.say(this.config.messages.listEmpty);
   }
+};
+
+Bot.prototype.onKick = function(text, userid, username) {
+  var args = Bot.splitCommand(text)[1];
+  if (!args) {
+    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>, <reason>");
+    return;
+  }
+  var split = args.split(/,(.+)/);
+  var subject_name = split[0];
+  var reason = split[1] ? username + ": " + split[1] : "by " + username;
+  var subjectid = this.useridsByName[subject_name];
+  if (!subjectid) { return; }
+  this.ttapi.bootUser(subjectid, reason);
 };
 
 Bot.prototype.onBan = function(text, userid, username) {
