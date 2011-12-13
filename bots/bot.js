@@ -31,6 +31,7 @@ Bot = function(configName) {
   this.activity = {};
   this.djList = new imports.djlist.DjList();
   this.banList = null;
+  this.facts = {};
 };
 
 Bot.usage = function() {
@@ -104,6 +105,10 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['reject-greeting'] = this.onRejectGreeting;
   this.friendCommandHandlers['pending-greetings'] = this.onPendingGreetings;
   this.ownerCommandHandlers['owners'] = this.onOwners;
+  this.commandHandlers['what'] = this.onWhat;
+  this.commandHandlers['facts'] = this.onFacts;
+  this.friendCommandHandlers['fact'] = this.onFact;
+  this.friendCommandHandlers['forget'] = this.onForget;
   this.friendCommandHandlers['friends'] = this.onFriends;
 };
 
@@ -215,6 +220,45 @@ Bot.prototype.onHelpFriendCommands = function() {
 Bot.prototype.onOwners = function() {
   this.say('my owners are: ' +
       Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '));
+};
+
+Bot.prototype.onWhat = function(text, userid, username) {
+  var term = Bot.splitCommand(text)[1];
+  if (!term) {
+    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>");
+    return;
+  }
+  if (this.facts[term]) {
+    this.say(term + ": " + this.facts[term]);
+  }
+};
+
+Bot.prototype.onFact = function(text, userid, username) {
+  var args = Bot.splitCommand(text)[1];
+  var split = args.split(/,(.+)/);
+  var term = split[0];
+  var definition = split[1] || "";
+  if (!definition) {
+    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>, <definition>");
+    return;
+  }
+  //TODO(vin): add persistence
+  this.facts[term] = definition;
+  this.say(term + ": " + definition);
+};
+
+Bot.prototype.onFacts = function(text, userid, username) {
+  this.say(this.config.messages.facts
+      .replace(/\{list\}/g, Object.keys(this.facts).join(', ')));
+};
+
+Bot.prototype.onForget = function(text, userid, username) {
+  var term = Bot.splitCommand(text)[1];
+  if (!term) {
+    this.say("Usage: " + Bot.splitCommand(text)[0] + " <fact>");
+    return;
+  }
+  delete this.facts[term];
 };
 
 Bot.prototype.onFriends = function() {
