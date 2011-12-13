@@ -229,7 +229,12 @@ Bot.prototype.onWhat = function(text, userid, username) {
     return;
   }
   if (this.facts[term]) {
-    this.say(term + ": " + this.facts[term]);
+    this.say(this.config.messages.fact
+      .replace(/{term\}/g, term)
+      .replace(/{definition\}/g, this.facts[term]));
+  } else {
+    this.say(this.config.messages.unknownFact
+      .replace(/{term\}/g, term));
   }
 };
 
@@ -258,7 +263,15 @@ Bot.prototype.onForget = function(text, userid, username) {
     this.say("Usage: " + Bot.splitCommand(text)[0] + " <fact>");
     return;
   }
-  delete this.facts[term];
+  if (this.facts[term]) {
+    this.say(this.config.messages.forget
+	.replace(/{term\}/g, term)
+	.replace(/\{definition\}/g, this.facts[term]));
+    delete this.facts[term];
+  } else {
+    this.say(this.config.messages.unknownFact
+      .replace(/{term\}/g, term));
+  }
 };
 
 Bot.prototype.onFriends = function() {
