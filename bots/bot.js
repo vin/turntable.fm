@@ -240,16 +240,18 @@ Bot.prototype.onWhat = function(text, userid, username) {
 
 Bot.prototype.onFact = function(text, userid, username) {
   var args = Bot.splitCommand(text)[1];
-  var split = args.split(/,(.+)/);
+  var split = args.split(/:(.+)/);
   var term = split[0];
   var definition = split[1] || "";
   if (!definition) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>, <definition>");
+    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>: <definition>");
     return;
   }
   //TODO(vin): add persistence
   this.facts[term] = definition;
-  this.say(term + ": " + definition);
+  this.say(this.config.messages.fact
+    .replace(/{term\}/g, term)
+    .replace(/{definition\}/g, definition));
 };
 
 Bot.prototype.onFacts = function(text, userid, username) {
