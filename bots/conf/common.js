@@ -76,7 +76,7 @@ exports.conf = {
 			"1000": "{user.name} just reached {points} points. It's monkey time!",
 			"10000": "Woohoo! Welcome {user.name} to the elite 10k propellerhead club!"
 		},
-		"fact": "{term}: {definition}",
+		"fact": "fact: {term}: {definition}",
 		"facts": "I know about {list}.  Ask *what <thing> to find out what I know about it!",
 		"forget": "I forgot about {term}.",
 		"unknownFact": "I don't know about {term}."
