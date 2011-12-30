@@ -48,6 +48,7 @@ Bot.prototype.onInitConfig = function(cb, err) {
   }
   this.debug = this.config.debug;
   this.mute = this.config.mute;
+  this.muteGreetings = this.config.muteGreetings;
   this.readGreetings();
   this.readActivity();
   this.readUsernames();
@@ -657,6 +658,9 @@ Bot.prototype.onPendingGreetings = function(text, userid, username) {
 };
 
 Bot.prototype.onRegistered = function(data) {
+  if (this.muteGreetings) {
+    return;
+  }
   if (this.debug) {
     console.dir(data);
   }
