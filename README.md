@@ -46,3 +46,7 @@ to hear about it!  I'm also very open to collaborators working to improve and ad
 this code base also.  Give me a shout, either here on github,
 [twitter](http://twitter.com/vineet), [email](mailto:vineet@doorstop.net), or
 wherever.  I'm [all over the place](http://claimid.com/vineet).
+
+Also, while I do want to help you understand and run my code, I can't be the
+one to help you with basic questions about github, nodejs, or Linux in general.
+There are plenty of great resources for all of these things on the web.
