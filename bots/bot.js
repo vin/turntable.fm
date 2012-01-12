@@ -135,7 +135,7 @@ Bot.prototype.writeGreetings = function() {
 Bot.prototype.writePendingGreetings = function() {
   imports.Store.write(this.config.pending_greetings_filename, this.pendingGreetings,
       console.log.bind(this, 'saved %d pending greetings to %s',
-  	Object.keys(this.pendingGreetings).length, this.config.pending_greetings_filename));
+          Object.keys(this.pendingGreetings).length, this.config.pending_greetings_filename));
 };
 
 Bot.prototype.readActivity = function() {
@@ -231,11 +231,11 @@ Bot.prototype.onWhat = function(text, userid, username) {
   }
   if (this.facts[term]) {
     this.say(this.config.messages.fact
-      .replace(/{term\}/g, term)
-      .replace(/{definition\}/g, this.facts[term]));
+      .replace(/\{term\}/g, term)
+      .replace(/\{definition\}/g, this.facts[term]));
   } else {
     this.say(this.config.messages.unknownFact
-      .replace(/{term\}/g, term));
+      .replace(/\{term\}/g, term));
   }
 };
 
@@ -251,8 +251,8 @@ Bot.prototype.onFact = function(text, userid, username) {
   //TODO(vin): add persistence
   this.facts[term] = definition;
   this.say(this.config.messages.fact
-    .replace(/{term\}/g, term)
-    .replace(/{definition\}/g, definition));
+    .replace(/\{term\}/g, term)
+    .replace(/\{definition\}/g, definition));
 };
 
 Bot.prototype.onFacts = function(text, userid, username) {
@@ -268,12 +268,12 @@ Bot.prototype.onForget = function(text, userid, username) {
   }
   if (this.facts[term]) {
     this.say(this.config.messages.forget
-	.replace(/{term\}/g, term)
+	.replace(/\{term\}/g, term)
 	.replace(/\{definition\}/g, this.facts[term]));
     delete this.facts[term];
   } else {
     this.say(this.config.messages.unknownFact
-      .replace(/{term\}/g, term));
+      .replace(/\{term\}/g, term));
   }
 };
 
@@ -303,7 +303,7 @@ Bot.prototype.onBonus = function(text, userid, username) {
   }
   if (this.currentSong.dj.userid === userid) {
     this.say(this.config.messages.selfBonus
-        .replace(/{user\.name\}/g, username));
+        .replace(/\{user\.name\}/g, username));
     return;
   }
   if (this.currentSong.bonusBy) {
@@ -379,17 +379,26 @@ Bot.prototype.lookupUsernameWithIdleStars = function(userid) {
   var age_m = this.last(username);
   if (age_m > 4) {
     return username + "*";
-  };
+  }
   return username;
 };
 
 Bot.prototype.onPlays = function(text, userid, username) {
-  var userid = this.currentSong.dj.userid;
+  var dj = this.currentDj();
+  if (!dj) {
+    return;
+  }
+  var djid = dj.userid;
   var subject_name = Bot.splitCommand(text)[1];
   if (subject_name) {
-    userid = this.useridsByName[subject_name];
+    djid = this.useridsByName[subject_name];
+    if (!djid) {
+      this.say(this.config.messages.unknownUser
+	  .replace(/\{user.name\}/g, subject_name));
+      return;
+    }
   }
-  var stats = this.djs[userid];
+  var stats = this.djs[djid];
   if (stats) {
     this.say(this.config.messages.plays
         .replace(/\{user\.name\}/g, stats.user.name)
@@ -869,7 +878,7 @@ Bot.prototype.onRemDj = function(data) {
     if (next) {
       this.say(this.config.messages.nextDj
           .replace(/\{user.name\}/, this.lookupUsername(next)));
-    };
+    }
   }
 };
 
@@ -907,10 +916,10 @@ Bot.prototype.onEndSong = function() {
 
 Bot.prototype.milestoneMessage = function(points) {
   var message = this.config.messages.milestones[points];
-  if (points % 1000 == 0) {
+  if (points % 1000 === 0) {
     message = message || this.config.messages.milestones['thousand'];
   }
-  if (points % 100 == 0) {
+  if (points % 100 === 0) {
     message = message || this.config.messages.milestones['hundred'];
   }
   return message;
