@@ -282,32 +282,37 @@ Bot.prototype.onFriends = function() {
       Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '));
 };
 
-Bot.prototype.bonusCb = function(userid, data) {
+Bot.prototype.bonusCb = function(currentSong, data) {
   if (this.debug) {
     console.dir(data);
   }
   if (!data.success) {
     return;
   }
-  this.currentSong.bonusBy = userid;
   this.say(this.config.messages.bonus
-      .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy))
-      .replace(/\{dj.name\}/g, this.currentSong.dj.name));
+      .replace(/\{user.name\}/g, this.lookupUsername(currentSong.bonusBy))
+      .replace(/\{dj.name\}/g, currentSong.dj.name));
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
   if (!this.currentSong || !this.currentSong.song) {
-         return;
+    return;
+  }
+  if (!this.currentSong.dj) {
+    debugger;
   }
   if (this.currentSong.dj.userid === userid) {
     this.say(this.config.messages.selfBonus
         .replace(/{user\.name\}/g, username));
-  } else if (this.currentSong.bonusBy) {
+    return;
+  }
+  if (this.currentSong.bonusBy) {
     this.say(this.config.messages.bonusAlreadyUsed
         .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
-  } else {
-    this.ttapi.vote('up', this.bonusCb.bind(this, userid));
+    return;
   }
+  this.currentSong.bonusBy = userid;
+  this.ttapi.vote('up', this.bonusCb.bind(this, this.currentSong));
 };
 
 Bot.prototype.onAlbum = function() {
@@ -740,10 +745,8 @@ Bot.prototype.onRoomInfo = function(data) {
       this.usernamesById[user.userid] = user.name;
     }, this);
     this.writeUsernames();
-    if (!this.currentSong) {
-      this.currentSong = new imports.stats.SongStats(
-          data.room.metadata.current_song,
-	  this.currentDj(data));
+    if (!this.currentSong && data.room.metadata.current_song) {
+      this.onNewSong(data);
       this.currentSong.updateVotes(data.room.metadata);
     }
   }
@@ -898,8 +901,8 @@ Bot.prototype.onEndSong = function() {
 	.replace(/\{song\}/g, this.currentSong.song.metadata.song)
 	.replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
 	.replace(/\{album\}/g, this.currentSong.song.metadata.album));
-    this.currentSong = null;
   }
+  this.currentSong = null;
 };
 
 Bot.prototype.milestoneMessage = function(points) {
@@ -914,14 +917,15 @@ Bot.prototype.milestoneMessage = function(points) {
 };
 
 Bot.prototype.checkMilestone = function() {
-  if (!this.currentDj()) {
+  var dj = this.currentDj();
+  if (!dj) {
     return;
   }
-  var points = this.currentDj().points;
+  var points = dj.points;
   var message = this.milestoneMessage(points);
   if (message) {
     this.say(message
-	.replace(/\{user\.name\}/g, this.currentSong.dj.name)
+	.replace(/\{user\.name\}/g, dj.name)
 	.replace(/\{points\}/g, points));
   }
 };
