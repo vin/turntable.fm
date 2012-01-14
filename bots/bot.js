@@ -295,11 +295,8 @@ Bot.prototype.bonusCb = function(currentSong, data) {
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
-  if (!this.currentSong || !this.currentSong.song) {
+  if (!this.currentSong) {
     return;
-  }
-  if (!this.currentSong.dj) {
-    debugger;
   }
   if (this.currentSong.dj.userid === userid) {
     this.say(this.config.messages.selfBonus
@@ -316,7 +313,7 @@ Bot.prototype.onBonus = function(text, userid, username) {
 };
 
 Bot.prototype.onAlbum = function() {
-  if (this.currentSong && this.currentSong.song) {
+  if (this.currentSong) {
     this.say(this.config.messages.album
         .replace(/\{song\}/g, this.currentSong.song.metadata.song)
         .replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
@@ -901,7 +898,7 @@ Bot.prototype.onNewSong = function(data) {
 };
 
 Bot.prototype.onEndSong = function() {
-  if (this.currentSong && this.currentSong.song && this.currentSong.dj) {
+  if (this.currentSong) {
     var message = this.config.messages.songSummary;
     this.say(message
 	.replace(/\{user\.name\}/g, this.currentSong.dj.name)
