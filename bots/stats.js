@@ -7,6 +7,7 @@ SongStats = function(song, dj) {
   this.votes = {upvotes: 0, downvotes: 0, votelog: []};
   this.dj = dj;
   assert.ok(dj);
+  assert.ok(dj.userid);
   assert.ok(song);
 };
 

@@ -23,8 +23,9 @@ Bot = function(configName) {
   this.useridsByName = {};
   this.usernamesById = {};
   this.activity = {};
+  /** @type {Object.<string, DjStats>} */
   this.djs = {};
-  /** @type SongStats */
+  /** @type {SongStats} */
   this.currentSong = null;
   this.pendingGreetings = {};
   this.greetings = {};
