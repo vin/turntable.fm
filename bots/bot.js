@@ -292,14 +292,14 @@ Bot.prototype.bonusCb = function(currentSong, data) {
   }
   this.say(this.config.messages.bonus
       .replace(/\{user.name\}/g, this.lookupUsername(currentSong.bonusBy))
-      .replace(/\{dj.name\}/g, currentSong.dj.name));
+      .replace(/\{dj.name\}/g, currentSong.song.djname));
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
   if (!this.currentSong) {
     return;
   }
-  if (this.currentSong.dj.userid === userid) {
+  if (this.currentSong.song.djid === userid) {
     this.say(this.config.messages.selfBonus
         .replace(/\{user\.name\}/g, username));
     return;
@@ -895,14 +895,14 @@ Bot.prototype.onNewSong = function(data) {
   var userid = data.room.metadata.current_dj;
   var djstats = this.djs[userid] || (this.djs[userid] = new imports.stats.DjStats(this.users[userid]));
   djstats.play(song);
-  this.currentSong = new imports.stats.SongStats(song, this.users[userid]);
+  this.currentSong = new imports.stats.SongStats(song);
 };
 
 Bot.prototype.onEndSong = function() {
   if (this.currentSong) {
     var message = this.config.messages.songSummary;
     this.say(message
-	.replace(/\{user\.name\}/g, this.currentSong.dj.name)
+	.replace(/\{user\.name\}/g, this.currentSong.song.djname)
 	.replace(/\{awesomes\}/g, isNaN(this.currentSong.votes.upvotes) ? 0 : this.currentSong.votes.upvotes)
 	.replace(/\{lames\}/g, isNaN(this.currentSong.votes.downvotes) ? 0 : this.currentSong.votes.downvotes)
 	.replace(/\{song\}/g, this.currentSong.song.metadata.song)
@@ -943,7 +943,6 @@ Bot.prototype.onUpdateVotes = function(data) {
   }
   this.recordActivity(data.room.metadata.votelog[0][0]);
   if (this.currentSong) {
-    this.currentSong.dj = this.currentDj();
     this.currentSong.updateVotes(data.room.metadata);
   }
   this.refreshRoomInfo(this.checkMilestone);
