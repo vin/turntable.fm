@@ -684,7 +684,7 @@ Bot.prototype.onRegistered = function(data) {
       var ban_comment = this.banList.query(user.userid);
       if (ban_comment) {
         this.say(this.config.messages.banned
-            .replace(/\{user\.name\}/g, subject_name)
+            .replace(/\{user\.name\}/g, user.name)
             .replace(/\{ban\.comment\}/g, ban_comment));
         this.ttapi.bootUser(user.userid, banned_reason);
         return;
