@@ -686,7 +686,7 @@ Bot.prototype.onRegistered = function(data) {
         this.say(this.config.messages.banned
             .replace(/\{user\.name\}/g, user.name)
             .replace(/\{ban\.comment\}/g, ban_comment));
-        this.ttapi.bootUser(user.userid, banned_reason);
+        this.ttapi.bootUser(user.userid, ban_comment);
         return;
       }
     }

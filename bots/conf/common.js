@@ -79,6 +79,7 @@ exports.conf = {
 		"fact": "fact: {term}: {definition}",
 		"facts": "I know about {list}.  Ask *what <thing> to find out what I know about it!",
 		"forget": "I forgot about {term}.",
-		"unknownFact": "I don't know about {term}."
+		"unknownFact": "I don't know about {term}.",
+		"unknownUser": "I don't know who {user.name} is."
 	}
 };
