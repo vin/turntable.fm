@@ -439,8 +439,14 @@ Bot.prototype.onList = function(text, userid, username) {
     return;
   }
   if (this.djList.length()) {
-    this.say(this.config.messages.list
-        .replace(/\{list\}/g, this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).join(', ')));
+    var number = (function() {
+      var i = 0;
+      return function(item) {
+        return ':' + ++i + ': ' + item;
+      }
+    })();
+    this.say(this.config.messages.list.replace(/\{list\}/g,
+        this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')));
   } else {
     this.say(this.config.messages.listEmpty);
   }
