@@ -19,6 +19,7 @@ Bot = function(configName) {
   this.hiddenCommandHandlers = {};
   this.friendCommandHandlers = {};
   this.ownerCommandHandlers = {};
+  this.pmCommandHandlers = {};
   this.users = {};
   this.useridsByName = {};
   this.usernamesById = {};
@@ -63,6 +64,7 @@ Bot.prototype.start = function(cb) {
 };
 
 Bot.prototype.bindHandlers = function() {
+  this.ttapi.on('pmmed', this.onPm.bind(this));
   this.ttapi.on('speak', this.onSpeak.bind(this));
   this.ttapi.on('registered', this.onRegistered.bind(this));
   this.ttapi.on('registered', this.onRegisteredFan.bind(this));
@@ -112,6 +114,7 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['fact'] = this.onFact;
   this.friendCommandHandlers['forget'] = this.onForget;
   this.friendCommandHandlers['friends'] = this.onFriends;
+  this.pmCommandHandlers['say'] = this.onSay;
 };
 
 var nop = function() {};
@@ -199,8 +202,34 @@ Bot.prototype.onSpeak = function(data) {
   handler = handler || this.commandHandlers[command];
   handler = handler || this.hiddenCommandHandlers[command];
   if (handler) {
-                handler.call(this, data.text, data.userid, data.name);
+    handler.call(this, data.text, data.userid, data.name);
   }
+};
+
+/**
+  * @param {{senderid: string, userid: string, text: string}} data return by ttapi
+  */
+Bot.prototype.onPm = function(data) {
+  if (this.debug) {
+    console.dir(data);
+  }
+  if (this.logChats) {
+    console.log('pm: %s: %s', data.name, data.text);
+  }
+  this.recordActivity(data.senderid);
+  var words = data.text.split(/\s+/);
+  var command = words[0].toLowerCase();
+  var handler = null;
+  if (this.config.owners[data.senderid]) {
+    handler = this.pmCommandHandlers[command];
+  };
+  if (handler) {
+    handler.call(this, data.text, data.senderid);
+  }
+};
+
+Bot.prototype.onSay = function(text, senderid) {
+  this.say(Bot.splitCommand(text)[1]);
 };
 
 Bot.prototype.onHelp = function() {
