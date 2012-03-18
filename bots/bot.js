@@ -1000,11 +1000,16 @@ Bot.prototype.recordActivity = function(userid) {
   this.writeActivity();
 };
 
-
+Bot.usage = function() {
+  return "usage: " + process.argv[0] + " " + process.argv[1] + " <configname>\n";
+};
 
 exports.Bot = Bot;
 exports.imports = imports;
 
 if (process.argv.length > 2) {
   new Bot(process.argv[2]).start();
+} else {
+  process.stderr.write(Bot.usage());
+  process.exit(1);
 }
