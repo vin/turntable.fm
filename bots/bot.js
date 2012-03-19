@@ -205,6 +205,7 @@ Bot.prototype.onSpeak = function(data) {
   handler = handler || this.hiddenCommandHandlers[command];
   if (handler) {
     if (data.command === "pmmed") {
+      //TODO(vin): this is a pretty hacky way to pass a parameter.
       this.replyPm = data.senderid;
     }
     handler.call(this, data.text, speakerid, data.name);
@@ -298,7 +299,7 @@ Bot.prototype.onFriends = function() {
       this.replyPm);
 };
 
-Bot.prototype.bonusCb = function(currentSong, replyPm, data) {
+Bot.prototype.bonusCb = function(currentSong, data) {
   if (this.debug) {
     console.dir(data);
   }
@@ -307,7 +308,7 @@ Bot.prototype.bonusCb = function(currentSong, replyPm, data) {
   }
   this.say(this.config.messages.bonus
       .replace(/\{user.name\}/g, this.lookupUsername(currentSong.bonusBy))
-      .replace(/\{dj.name\}/g, currentSong.song.djname), replyPm);
+      .replace(/\{dj.name\}/g, currentSong.song.djname));
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
@@ -325,7 +326,7 @@ Bot.prototype.onBonus = function(text, userid, username) {
     return;
   }
   this.currentSong.bonusBy = userid;
-  this.ttapi.vote('up', this.bonusCb.bind(this, this.currentSong, this.replyPm));
+  this.ttapi.vote('up', this.bonusCb.bind(this, this.currentSong));
 };
 
 Bot.prototype.onAlbum = function() {
