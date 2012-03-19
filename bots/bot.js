@@ -365,11 +365,15 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
     if (age_m > 120) {
       age = Math.floor(age_m / 60) + " hours";
     }
-    this.say(this.config.messages.lastActivity
-        .replace(/\{user\.name\}/g, subject_name)
-        .replace(/\{age\}/g, age));
+    this.say(
+        this.config.messages.lastActivity
+          .replace(/\{user\.name\}/g, subject_name)
+          .replace(/\{age\}/g, age),
+        this.replyPm);
   } else {
-    this.say(this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name));
+    this.say(
+        this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name),
+        this.replyPm);
   }
 };
 
