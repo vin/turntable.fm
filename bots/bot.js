@@ -19,7 +19,6 @@ Bot = function(configName) {
   this.hiddenCommandHandlers = {};
   this.friendCommandHandlers = {};
   this.ownerCommandHandlers = {};
-  this.pmCommandHandlers = {};
   this.users = {};
   this.useridsByName = {};
   this.usernamesById = {};
@@ -64,7 +63,7 @@ Bot.prototype.start = function(cb) {
 };
 
 Bot.prototype.bindHandlers = function() {
-  this.ttapi.on('pmmed', this.onPm.bind(this));
+  this.ttapi.on('pmmed', this.onSpeak.bind(this));
   this.ttapi.on('speak', this.onSpeak.bind(this));
   this.ttapi.on('registered', this.onRegistered.bind(this));
   this.ttapi.on('registered', this.onRegisteredFan.bind(this));
@@ -114,7 +113,7 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['fact'] = this.onFact;
   this.friendCommandHandlers['forget'] = this.onForget;
   this.friendCommandHandlers['friends'] = this.onFriends;
-  this.pmCommandHandlers['say'] = this.onSay;
+  this.ownerCommandHandlers['say'] = this.onSay;
 };
 
 var nop = function() {};
@@ -183,74 +182,60 @@ Bot.prototype.onSpeak = function(data) {
   if (this.logChats) {
     console.log('chat: %s: %s', data.name, data.text);
   }
-  this.recordActivity(data.userid);
+  var speakerid = data.command === 'pmmed' ? data.senderid : data.userid;
+  this.recordActivity(speakerid);
   var words = data.text.split(/\s+/);
   var command = words[0].toLowerCase();
   if (command.match(/^[!*\/]/)) {
     command = command.substring(1);
+  } else if (data.command === "pmmed") {
+    // allow non-prefixed commands in PMs.
   } else if (Bot.bareCommands.indexOf(data.text) === -1) { // bare commands must match the entire text line
     return;
   }
   var handler = null;
-  if (this.config.owners[data.userid]) {
+  if (this.config.owners[speakerid]) {
     handler = handler || this.ownerCommandHandlers[command];
     handler = handler || this.friendCommandHandlers[command];
   }
-  if (this.config.friends[data.userid]) {
+  if (this.config.friends[speakerid]) {
     handler = handler || this.friendCommandHandlers[command];
   }
   handler = handler || this.commandHandlers[command];
   handler = handler || this.hiddenCommandHandlers[command];
   if (handler) {
-    handler.call(this, data.text, data.userid, data.name);
-  }
-};
-
-/**
-  * @param {{senderid: string, userid: string, text: string}} data return by ttapi
-  */
-Bot.prototype.onPm = function(data) {
-  if (this.debug) {
-    console.dir(data);
-  }
-  if (this.logChats) {
-    console.log('pm: %s: %s', data.name, data.text);
-  }
-  this.recordActivity(data.senderid);
-  var words = data.text.split(/\s+/);
-  var command = words[0].toLowerCase();
-  var handler = null;
-  if (this.config.owners[data.senderid]) {
-    handler = this.pmCommandHandlers[command];
-  };
-  if (handler) {
-    handler.call(this, data.text, data.senderid);
+    if (data.command === "pmmed") {
+      this.replyPm = data.senderid;
+    }
+    handler.call(this, data.text, speakerid, data.name);
+    delete this.replyPm;
   }
 };
 
 Bot.prototype.onSay = function(text, senderid) {
+  console.log('onSay: %s', text);
   this.say(Bot.splitCommand(text)[1]);
 };
 
 Bot.prototype.onHelp = function() {
-  this.say(this.config.messages.help);
+  this.say(this.config.messages.help, this.replyPm);
 };
 
 Bot.prototype.onHelpCommands = function() {
   this.say('commands: ' +
       Object.keys(this.commandHandlers)
-	  .map(function(s) { return "*" + s; }).join(', '));
+	  .map(function(s) { return "*" + s; }).join(', '), this.replyPm);
 };
 
 Bot.prototype.onHelpFriendCommands = function() {
   this.say('friend commands: ' +
       Object.keys(this.friendCommandHandlers)
-	  .map(function(s) { return "*" + s; }).join(', '));
+	  .map(function(s) { return "*" + s; }).join(', '), this.replyPm);
 };
 
 Bot.prototype.onOwners = function() {
   this.say('my owners are: ' +
-      Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '));
+      Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '), this.replyPm);
 };
 
 Bot.prototype.onWhat = function(text, userid, username) {
@@ -309,10 +294,11 @@ Bot.prototype.onForget = function(text, userid, username) {
 
 Bot.prototype.onFriends = function() {
   this.say('my friends are: ' +
-      Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '));
+      Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '),
+      this.replyPm);
 };
 
-Bot.prototype.bonusCb = function(currentSong, data) {
+Bot.prototype.bonusCb = function(currentSong, replyPm, data) {
   if (this.debug) {
     console.dir(data);
   }
@@ -321,7 +307,7 @@ Bot.prototype.bonusCb = function(currentSong, data) {
   }
   this.say(this.config.messages.bonus
       .replace(/\{user.name\}/g, this.lookupUsername(currentSong.bonusBy))
-      .replace(/\{dj.name\}/g, currentSong.song.djname));
+      .replace(/\{dj.name\}/g, currentSong.song.djname), replyPm);
 };
 
 Bot.prototype.onBonus = function(text, userid, username) {
@@ -335,11 +321,11 @@ Bot.prototype.onBonus = function(text, userid, username) {
   }
   if (this.currentSong.bonusBy) {
     this.say(this.config.messages.bonusAlreadyUsed
-        .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
+        .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)), this.replyPm);
     return;
   }
   this.currentSong.bonusBy = userid;
-  this.ttapi.vote('up', this.bonusCb.bind(this, this.currentSong));
+  this.ttapi.vote('up', this.bonusCb.bind(this, this.currentSong, this.replyPm));
 };
 
 Bot.prototype.onAlbum = function() {
@@ -840,16 +826,20 @@ Bot.prototype.onDeregister = function(data) {
   }
 };
 
-Bot.prototype.say = function(msg) {
+Bot.prototype.say = function(msg, pmUser) {
   if (!msg || !this.roomInfo) { return; }
   var message = msg
       .replace(/\{room\.name\}/g, this.roomInfo.room.name)
       .replace(/\{bot\.name\}/g, this.lookupUsername(this.config.userid));
   if (this.debug) {
-    console.log("say: %s", message);
+    console.log("say(" + pmUser + "): %s", message);
   }
   if (!this.mute) {
-    this.ttapi.speak(message);
+    if (pmUser) {
+      this.ttapi.pm(message, pmUser);
+    } else {
+      this.ttapi.speak(message);
+    }
   }
 };
 
