@@ -182,8 +182,11 @@ Bot.prototype.onSpeak = function(data) {
   if (this.logChats) {
     console.log('chat: %s: %s', data.name, data.text);
   }
-  var speakerid = data.command === 'pmmed' ? data.senderid : data.userid;
-  this.recordActivity(speakerid);
+  if (data.command === "pmmed") {
+    data.name = this.lookupUsername(data.senderid);
+    data.userid = data.senderid;
+  }
+  this.recordActivity(data.userid);
   var words = data.text.split(/\s+/);
   var command = words[0].toLowerCase();
   if (command.match(/^[!*\/]/)) {
@@ -194,11 +197,11 @@ Bot.prototype.onSpeak = function(data) {
     return;
   }
   var handler = null;
-  if (this.config.owners[speakerid]) {
+  if (this.config.owners[data.userid]) {
     handler = handler || this.ownerCommandHandlers[command];
     handler = handler || this.friendCommandHandlers[command];
   }
-  if (this.config.friends[speakerid]) {
+  if (this.config.friends[data.userid]) {
     handler = handler || this.friendCommandHandlers[command];
   }
   handler = handler || this.commandHandlers[command];
@@ -208,7 +211,7 @@ Bot.prototype.onSpeak = function(data) {
       //TODO(vin): this is a pretty hacky way to pass a parameter.
       this.replyPm = data.senderid;
     }
-    handler.call(this, data.text, speakerid, data.name);
+    handler.call(this, data.text, data.userid, data.name);
     delete this.replyPm;
   }
 };
@@ -422,7 +425,7 @@ Bot.prototype.onPlays = function(text, userid, username) {
 
 Bot.prototype.onList = function(text, userid, username) {
   if (!this.djList.active) {
-    this.say(this.config.messages.listInactive);
+    this.say(this.config.messages.listInactive, this.replyPm);
     return;
   }
   if (this.djList.length()) {
@@ -433,9 +436,10 @@ Bot.prototype.onList = function(text, userid, username) {
       }
     })();
     this.say(this.config.messages.list.replace(/\{list\}/g,
-        this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')));
+        this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')),
+        this.replyPm);
   } else {
-    this.say(this.config.messages.listEmpty);
+    this.say(this.config.messages.listEmpty, this.replyPm);
   }
 };
 
