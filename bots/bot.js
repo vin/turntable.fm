@@ -986,7 +986,10 @@ Bot.prototype.onNoSong = function(data) {
 };
 
 Bot.bareCommands = [
-  'help'
+  'help',
+  'list',
+  'addme',
+  'removeme'
 ];
 
 Bot.prototype.recordActivity = function(userid) {
