@@ -45,7 +45,7 @@ exports.conf = {
 		"lastActivityUnknown": "Hmm, I haven't seen {user.name}",
 		"listInactive": "There is no list.  Fastest-fingers.",
 		"listEmpty": "Nobody's on the list.  Type *addme to add yourself.",
-		"listAdded": "{user.name}, you're now #{position} on the list.",
+		"listAdded": "{user.name}, you're now #:{position}: on the list.",
 		"list": "The current dj list is: {list}",
 		"listOn": "The room now has a dj list.  Type *addme to add yourself.",
 		"listOff": "The dj list is now off.  Fastest-fingers.",
