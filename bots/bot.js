@@ -421,9 +421,11 @@ Bot.prototype.onPlays = function(text, userid, username) {
   }
   var stats = this.djs[djid];
   if (stats) {
-    this.say(this.config.messages.plays
-        .replace(/\{user\.name\}/g, stats.user.name)
-        .replace(/\{plays\}/g, stats.plays));
+    this.say(
+        this.config.messages.plays
+            .replace(/\{user\.name\}/g, stats.user.name)
+            .replace(/\{plays\}/g, stats.plays),
+        this.replyPm);
   }
 };
 
