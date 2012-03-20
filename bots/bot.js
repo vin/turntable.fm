@@ -222,38 +222,38 @@ Bot.prototype.onSay = function(text, senderid) {
 };
 
 Bot.prototype.onHelp = function() {
-  this.say(this.config.messages.help, this.replyPm);
+  this.reply(this.config.messages.help);
 };
 
 Bot.prototype.onHelpCommands = function() {
-  this.say('commands: ' +
+  this.reply('commands: ' +
       Object.keys(this.commandHandlers)
-	  .map(function(s) { return "*" + s; }).join(', '), this.replyPm);
+	  .map(function(s) { return "*" + s; }).join(', '));
 };
 
 Bot.prototype.onHelpFriendCommands = function() {
-  this.say('friend commands: ' +
+  this.reply('friend commands: ' +
       Object.keys(this.friendCommandHandlers)
-	  .map(function(s) { return "*" + s; }).join(', '), this.replyPm);
+	  .map(function(s) { return "*" + s; }).join(', '));
 };
 
 Bot.prototype.onOwners = function() {
-  this.say('my owners are: ' +
-      Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '), this.replyPm);
+  this.reply('my owners are: ' +
+      Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '));
 };
 
 Bot.prototype.onWhat = function(text, userid, username) {
   var term = Bot.splitCommand(text)[1];
   if (!term) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>");
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <term>");
     return;
   }
   if (this.facts[term]) {
-    this.say(this.config.messages.fact
+    this.reply(this.config.messages.fact
       .replace(/\{term\}/g, term)
       .replace(/\{definition\}/g, this.facts[term]));
   } else {
-    this.say(this.config.messages.unknownFact
+    this.reply(this.config.messages.unknownFact
       .replace(/\{term\}/g, term));
   }
 };
@@ -264,42 +264,41 @@ Bot.prototype.onFact = function(text, userid, username) {
   var term = split[0];
   var definition = split[1] || "";
   if (!definition) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <term>: <definition>");
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <term>: <definition>");
     return;
   }
   //TODO(vin): add persistence
   this.facts[term] = definition;
-  this.say(this.config.messages.fact
+  this.reply(this.config.messages.fact
     .replace(/\{term\}/g, term)
     .replace(/\{definition\}/g, definition));
 };
 
 Bot.prototype.onFacts = function(text, userid, username) {
-  this.say(this.config.messages.facts
+  this.reply(this.config.messages.facts
       .replace(/\{list\}/g, Object.keys(this.facts).join(', ')));
 };
 
 Bot.prototype.onForget = function(text, userid, username) {
   var term = Bot.splitCommand(text)[1];
   if (!term) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <fact>");
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <fact>");
     return;
   }
   if (this.facts[term]) {
-    this.say(this.config.messages.forget
+    this.reply(this.config.messages.forget
 	.replace(/\{term\}/g, term)
 	.replace(/\{definition\}/g, this.facts[term]));
     delete this.facts[term];
   } else {
-    this.say(this.config.messages.unknownFact
+    this.reply(this.config.messages.unknownFact
       .replace(/\{term\}/g, term));
   }
 };
 
 Bot.prototype.onFriends = function() {
-  this.say('my friends are: ' +
-      Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '),
-      this.replyPm);
+  this.reply('my friends are: ' +
+      Object.keys(this.config.owners).concat(Object.keys(this.config.friends)).map(this.lookupUsername.bind(this)).join(', '));
 };
 
 Bot.prototype.bonusCb = function(currentSong, data) {
@@ -319,15 +318,14 @@ Bot.prototype.onBonus = function(text, userid, username) {
     return;
   }
   if (this.currentSong.song.djid === userid) {
-    this.say(this.config.messages.selfBonus
+    this.reply(this.config.messages.selfBonus
         .replace(/\{user\.name\}/g, username));
     return;
   }
   if (this.currentSong.bonusBy) {
-    this.say(
+    this.reply(
         this.config.messages.bonusAlreadyUsed
-            .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)),
-        this.replyPm);
+            .replace(/\{user.name\}/g, this.lookupUsername(this.currentSong.bonusBy)));
     return;
   }
   this.currentSong.bonusBy = userid;
@@ -336,12 +334,11 @@ Bot.prototype.onBonus = function(text, userid, username) {
 
 Bot.prototype.onAlbum = function() {
   if (this.currentSong) {
-    this.say(
+    this.reply(
         this.config.messages.album
             .replace(/\{song\}/g, this.currentSong.song.metadata.song)
             .replace(/\{artist\}/g, this.currentSong.song.metadata.artist)
-            .replace(/\{album\}/g, this.currentSong.song.metadata.album || "(unknown)"),
-	this.replyPm);
+            .replace(/\{album\}/g, this.currentSong.song.metadata.album || "(unknown)"));
   }
 };
 
@@ -360,7 +357,7 @@ Bot.splitCommand = function(text) {
 Bot.prototype.onLast = function(text, unused_userid, unused_username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>");
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var age_m = this.last(subject_name);
@@ -369,15 +366,13 @@ Bot.prototype.onLast = function(text, unused_userid, unused_username) {
     if (age_m > 120) {
       age = Math.floor(age_m / 60) + " hours";
     }
-    this.say(
+    this.reply(
         this.config.messages.lastActivity
           .replace(/\{user\.name\}/g, subject_name)
-          .replace(/\{age\}/g, age),
-        this.replyPm);
+          .replace(/\{age\}/g, age));
   } else {
-    this.say(
-        this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name),
-        this.replyPm);
+    this.reply(
+        this.config.messages.lastActivityUnknown.replace(/\{user\.name\}/g, subject_name));
   }
 };
 
@@ -418,26 +413,24 @@ Bot.prototype.onPlays = function(text, userid, username) {
   if (subject_name) {
     djid = this.useridsByName[subject_name];
     if (!djid) {
-      this.say(
+      this.reply(
           this.config.messages.unknownUser
-	      .replace(/\{user.name\}/g, subject_name),
-	  this.replyPm);
+	      .replace(/\{user.name\}/g, subject_name));
       return;
     }
   }
   var stats = this.djs[djid];
   if (stats) {
-    this.say(
+    this.reply(
         this.config.messages.plays
             .replace(/\{user\.name\}/g, stats.user.name)
-            .replace(/\{plays\}/g, stats.plays),
-        this.replyPm);
+            .replace(/\{plays\}/g, stats.plays));
   }
 };
 
 Bot.prototype.onList = function(text, userid, username) {
   if (!this.djList.active) {
-    this.say(this.config.messages.listInactive, this.replyPm);
+    this.reply(this.config.messages.listInactive);
     return;
   }
   if (this.djList.length()) {
@@ -447,17 +440,16 @@ Bot.prototype.onList = function(text, userid, username) {
         return ':' + ++i + ': ' + item;
       }
     })();
-    this.say(this.config.messages.list.replace(/\{list\}/g,
-        this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')),
-        this.replyPm);
+    this.reply(this.config.messages.list.replace(/\{list\}/g,
+        this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')));
   } else {
-    this.say(this.config.messages.listEmpty, this.replyPm);
+    this.reply(this.config.messages.listEmpty);
   }
 };
 
 Bot.prototype.onListOn = function(text, userid, username) {
   if (this.djList.active) {
-    this.say(this.config.messages.listAlreadyOn, this.replyPm);
+    this.reply(this.config.messages.listAlreadyOn);
   } else {
     this.djList.active = true;
     this.djList.save(this.config.djlist_filename);
@@ -471,7 +463,7 @@ Bot.prototype.onListOff = function(text, userid, username) {
     this.djList.save(this.config.djlist_filename);
     this.say(this.config.messages.listOff);
   } else {
-    this.say(this.config.messages.listAlreadyOff, this.replyPm);
+    this.reply(this.config.messages.listAlreadyOff);
   }
 };
 
@@ -485,31 +477,30 @@ Bot.prototype.onListReset = function(text, userid, username) {
 
 Bot.prototype.onAddme = function(text, userid, username) {
   if (!this.djList.active) {
-    this.say(this.config.messages.listInactive, this.replyPm);
+    this.reply(this.config.messages.listInactive);
     return;
   }
   var position = this.djList.add(userid);
   if (position < 0) {
-    this.say(this.config.messages.listAlreadyListed
+    this.reply(this.config.messages.listAlreadyListed
         .replace(/\{user.name\}/g, username)
-        .replace(/\{position\}/g, -position),
-        this.replyPm);
+        .replace(/\{position\}/g, -position));
     return;
   }
   this.djList.save(this.config.djlist_filename);
-  this.say(this.config.messages.listAdded
+  this.reply(this.config.messages.listAdded
       .replace(/\{user.name\}/g, username)
       .replace(/\{position\}/g, position));
 };
 
 Bot.prototype.onAddFirst = function(text, userid, username) {
   if (!this.djList.active) {
-    this.say(this.config.messages.listInactive, this.replyPm);
+    this.reply(this.config.messages.listInactive);
     return;
   }
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
@@ -520,8 +511,8 @@ Bot.prototype.onAddFirst = function(text, userid, username) {
         .replace(/\{user.name\}/g, subject_name)
         .replace(/\{position\}/g, 1));
   } else {
-    this.say(this.config.messages.unknownUser
-        .replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.unknownUser
+        .replace(/\{user.name\}/g, subject_name));
   }
 };
 
@@ -533,15 +524,15 @@ Bot.prototype.onRemoveme = function(text, userid, username) {
         .replace(/\{user.name\}/g, username)
         .replace(/\{position\}/g, i + 1));
   } else {
-    this.say(this.config.messages.listRemoveNotListed
-        .replace(/\{user.name\}/g, username), this.replyPm);
+    this.reply(this.config.messages.listRemoveNotListed
+        .replace(/\{user.name\}/g, username));
   }
 };
 
 Bot.prototype.onRemove = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
@@ -555,14 +546,14 @@ Bot.prototype.onRemoveFirst = function(text, userid, username) {
         .replace(/\{user\.name\}/g, this.lookupUsername(removed_userid))
         .replace(/\{position\}/g, 1));
   } else {
-    this.say(this.config.messages.listEmpty), this.replyPm;
+    this.reply(this.config.messages.listEmpty);
   }
 };
 
 Bot.prototype.onKick = function(text, userid, username) {
   var args = Bot.splitCommand(text)[1];
   if (!args) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>, <reason>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>, <reason>");
     return;
   }
   var split = args.split(/,(.+)/);
@@ -576,7 +567,7 @@ Bot.prototype.onKick = function(text, userid, username) {
 Bot.prototype.onBan = function(text, userid, username) {
   var args = Bot.splitCommand(text)[1];
   if (!args) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>, <comment>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>, <comment>");
     return;
   }
   var split = args.split(/,(.+)/);
@@ -594,40 +585,40 @@ Bot.prototype.onBan = function(text, userid, username) {
 
 Bot.prototype.onBans = function(text, userid, username) {
   var bans = this.banList.list();
-  this.say(this.config.messages.bans
+  this.reply(this.config.messages.bans
       .replace(/\{ban\.count\}/g, Object.keys(bans).length)
-      .replace(/\{ban\.list\}/g, bans.map(this.lookupUsername.bind(this)).join(', ')), this.replyPm);
+      .replace(/\{ban\.list\}/g, bans.map(this.lookupUsername.bind(this)).join(', ')));
 };
 
 Bot.prototype.onBanned = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
   var comment = this.banList.query(subjectid);
   if (!comment) {
-    this.say(this.config.messages.notBanned
-        .replace(/\{user\.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.notBanned
+        .replace(/\{user\.name\}/g, subject_name));
   } else {
-    this.say(this.config.messages.banned
+    this.reply(this.config.messages.banned
         .replace(/\{user\.name\}/g, subject_name)
-        .replace(/\{ban\.comment\}/g, comment), this.replyPm);
+        .replace(/\{ban\.comment\}/g, comment));
   }
 };
 
 Bot.prototype.onUnban = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
   var comment = this.banList.query(subjectid);
   if (!comment) {
-    this.say(this.config.messages.notBanned
-        .replace(/\{user\.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.notBanned
+        .replace(/\{user\.name\}/g, subject_name));
   } else {
     this.banList.unban(subjectid);
     this.banList.save(this.config.banlist_filename);
@@ -639,18 +630,18 @@ Bot.prototype.onUnban = function(text, userid, username) {
 Bot.prototype.onGreet = function(text, userid, username) {
   var greeting = Bot.splitCommand(text)[1];
   if (!greeting || greeting.indexOf(username) === -1) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <greeting> -- greeting must contain your name.", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <greeting> -- greeting must contain your name.");
     return;
   }
   this.pendingGreetings[userid] = greeting.replace(username, "{user.name}");
   this.writePendingGreetings();
-  this.say("(pending approval): " + greeting.replace(/\{user.name\}/g, username), this.replyPm);
+  this.reply("(pending approval): " + greeting.replace(/\{user.name\}/g, username));
 };
 
 Bot.prototype.onApproveGreeting = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
@@ -666,7 +657,7 @@ Bot.prototype.onApproveGreeting = function(text, userid, username) {
 Bot.prototype.onShowGreeting = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
@@ -674,16 +665,16 @@ Bot.prototype.onShowGreeting = function(text, userid, username) {
          return;
   }
   if (this.pendingGreetings[subjectid]) {
-    this.say("(pending approval): " + this.pendingGreetings[subjectid].replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply("(pending approval): " + this.pendingGreetings[subjectid].replace(/\{user.name\}/g, subject_name));
   } else if (this.greetings[subjectid]) {
-    this.say("(approved): " + this.greetings[subjectid].replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply("(approved): " + this.greetings[subjectid].replace(/\{user.name\}/g, subject_name));
   }
 };
 
 Bot.prototype.onRejectGreeting = function(text, userid, username) {
   var subject_name = Bot.splitCommand(text)[1];
   if (!subject_name) {
-    this.say("Usage: " + Bot.splitCommand(text)[0] + " <username>", this.replyPm);
+    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <username>");
     return;
   }
   var subjectid = this.useridsByName[subject_name];
@@ -693,19 +684,19 @@ Bot.prototype.onRejectGreeting = function(text, userid, username) {
   if (subjectid in this.pendingGreetings) {
     delete this.pendingGreetings[subjectid];
     this.writePendingGreetings();
-    this.say(this.config.messages.pendingGreetingRejected.replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.pendingGreetingRejected.replace(/\{user.name\}/g, subject_name));
   } else if (subjectid in this.greetings) {
     delete this.greetings[subjectid];
     this.writeGreetings();
-    this.say(this.config.messages.greetingRejected.replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.greetingRejected.replace(/\{user.name\}/g, subject_name));
   } else {
-    this.say(this.config.messages.noGreeting.replace(/\{user.name\}/g, subject_name), this.replyPm);
+    this.reply(this.config.messages.noGreeting.replace(/\{user.name\}/g, subject_name));
   }
 };
 
 Bot.prototype.onPendingGreetings = function(text, userid, username) {
-  this.say(this.config.messages.pendingGreetings.replace(/\{list\}/,
-      Object.keys(this.pendingGreetings).map(this.lookupUsername.bind(this)).join(', ')), this.replyPm);
+  this.reply(this.config.messages.pendingGreetings.replace(/\{list\}/,
+      Object.keys(this.pendingGreetings).map(this.lookupUsername.bind(this)).join(', ')));
 };
 
 Bot.prototype.onRegistered = function(data) {
@@ -859,6 +850,10 @@ Bot.prototype.say = function(msg, pmUser) {
       this.ttapi.speak(message);
     }
   }
+};
+
+Bot.prototype.reply = function(msg) {
+  this.say(msg, this.replyPm);
 };
 
 Bot.prototype.onNewModerator = function(data) {
