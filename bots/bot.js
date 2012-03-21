@@ -389,6 +389,7 @@ Bot.prototype.last = function(username) {
   var age_m = Math.floor(age_ms / 1000 / 60);
   return age_m;
 };
+Bot.prototype.last.__doc__ = 'last(username): minutes since last recorded activity by username';
 
 Bot.prototype.lookupUsername = function(userid) {
   return this.usernamesById[userid] || "(unknown)";
