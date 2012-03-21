@@ -7,7 +7,8 @@ var imports = {
   banlist: require('./banlist'),
   djlist: require('./djlist'),
   Store: require('./store').Store,
-  stats: require('./stats')
+  stats: require('./stats'),
+  FactBot: require('./facts').FactBot
 };
 
 Bot = function(configName) {
@@ -32,7 +33,6 @@ Bot = function(configName) {
   this.activity = {};
   this.djList = new imports.djlist.DjList();
   this.banList = null;
-  this.facts = {};
 };
 
 Bot.usage = function() {
@@ -108,10 +108,6 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['reject-greeting'] = this.onRejectGreeting;
   this.friendCommandHandlers['pending-greetings'] = this.onPendingGreetings;
   this.ownerCommandHandlers['owners'] = this.onOwners;
-  this.commandHandlers['what'] = this.onWhat;
-  this.commandHandlers['facts'] = this.onFacts;
-  this.friendCommandHandlers['fact'] = this.onFact;
-  this.friendCommandHandlers['forget'] = this.onForget;
   this.friendCommandHandlers['friends'] = this.onFriends;
   this.ownerCommandHandlers['say'] = this.onSay;
 };
@@ -240,60 +236,6 @@ Bot.prototype.onHelpFriendCommands = function() {
 Bot.prototype.onOwners = function() {
   this.reply('my owners are: ' +
       Object.keys(this.config.owners).map(this.lookupUsername.bind(this)).join(', '));
-};
-
-Bot.prototype.onWhat = function(text, userid, username) {
-  var term = Bot.splitCommand(text)[1];
-  if (!term) {
-    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <term>");
-    return;
-  }
-  if (this.facts[term]) {
-    this.reply(this.config.messages.fact
-      .replace(/\{term\}/g, term)
-      .replace(/\{definition\}/g, this.facts[term]));
-  } else {
-    this.reply(this.config.messages.unknownFact
-      .replace(/\{term\}/g, term));
-  }
-};
-
-Bot.prototype.onFact = function(text, userid, username) {
-  var args = Bot.splitCommand(text)[1];
-  var split = args.split(/:(.+)/);
-  var term = split[0];
-  var definition = split[1] || "";
-  if (!definition) {
-    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <term>: <definition>");
-    return;
-  }
-  //TODO(vin): add persistence
-  this.facts[term] = definition;
-  this.reply(this.config.messages.fact
-    .replace(/\{term\}/g, term)
-    .replace(/\{definition\}/g, definition));
-};
-
-Bot.prototype.onFacts = function(text, userid, username) {
-  this.reply(this.config.messages.facts
-      .replace(/\{list\}/g, Object.keys(this.facts).join(', ')));
-};
-
-Bot.prototype.onForget = function(text, userid, username) {
-  var term = Bot.splitCommand(text)[1];
-  if (!term) {
-    this.reply("Usage: " + Bot.splitCommand(text)[0] + " <fact>");
-    return;
-  }
-  if (this.facts[term]) {
-    this.reply(this.config.messages.forget
-	.replace(/\{term\}/g, term)
-	.replace(/\{definition\}/g, this.facts[term]));
-    delete this.facts[term];
-  } else {
-    this.reply(this.config.messages.unknownFact
-      .replace(/\{term\}/g, term));
-  }
 };
 
 Bot.prototype.onFriends = function() {
@@ -1015,7 +957,9 @@ exports.Bot = Bot;
 exports.imports = imports;
 
 if (process.argv.length > 2) {
-  new Bot(process.argv[2]).start();
+  var bot = new Bot(process.argv[2]);
+  var factbot = new imports.FactBot(bot);
+  factbot.start();
 } else {
   process.stderr.write(Bot.usage());
   process.exit(1);
