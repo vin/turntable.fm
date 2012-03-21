@@ -56,8 +56,8 @@ FactBot.prototype.onForget = function(text, userid, username) {
   }
   if (this.facts[term]) {
     this.reply(this.config.messages.forget
-	.replace(/\{term\}/g, term)
-	.replace(/\{definition\}/g, this.facts[term]));
+        .replace(/\{term\}/g, term)
+        .replace(/\{definition\}/g, this.facts[term]));
     delete this.facts[term];
   } else {
     this.reply(this.config.messages.unknownFact
