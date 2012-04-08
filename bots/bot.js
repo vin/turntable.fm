@@ -1,5 +1,7 @@
 // Copyright 2011 Vineet Kumar
 
+"use strict";
+
 var imports = {
   repl: require('repl'),
   ttapi: require('ttapi'),
@@ -649,7 +651,7 @@ Bot.prototype.onRegistered = function(data) {
   if (this.debug) {
     console.dir(data);
   }
-  user = data.user[0];
+  var user = data.user[0];
   if (user.userid !== this.config.userid) {
     this.recordActivity(user.userid);
     this.refreshRoomInfo();
@@ -668,18 +670,18 @@ Bot.prototype.onRegistered = function(data) {
 };
 
 Bot.prototype.onRegisteredFan = function(data) {
-  user = data.user[0];
+  var user = data.user[0];
   if (user.userid !== this.config.userid) {
     this.ttapi.becomeFan(user.userid);
   }
 };
 
-MS_FROM_S = 1000;
-S_FROM_M = 60;
-M_FROM_H = 60;
-H_FROM_D = 24;
-D_FROM_W = 7;
-MS_FROM_W = MS_FROM_S * S_FROM_M * M_FROM_H * H_FROM_D * D_FROM_W;
+var MS_FROM_S = 1000;
+var S_FROM_M = 60;
+var M_FROM_H = 60;
+var H_FROM_D = 24;
+var D_FROM_W = 7;
+var MS_FROM_W = MS_FROM_S * S_FROM_M * M_FROM_H * H_FROM_D * D_FROM_W;
 
 Bot.prototype.greeting = function(user) {
   var message = this.greetings[user.userid];
@@ -708,7 +710,7 @@ Bot.prototype.djAnnouncement = function(user) {
 };
 
 
-randomElement = function(ar) {
+var randomElement = function(ar) {
   return ar[Math.floor(Math.random() * ar.length)];
 };
 
