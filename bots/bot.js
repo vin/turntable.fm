@@ -382,9 +382,9 @@ Bot.prototype.onList = function(text, userid, username) {
     var number = (function() {
       var i = 0;
       return function(item) {
-        return ':' + ++i + ': ' + item;
-      }
-    })();
+        return ':' + (++i) + ': ' + item;
+      };
+    }());
     this.reply(this.config.messages.list.replace(/\{list\}/g,
         this.djList.list.map(this.lookupUsernameWithIdleStars.bind(this)).map(number).join(', ')));
   } else {
@@ -683,6 +683,10 @@ var H_FROM_D = 24;
 var D_FROM_W = 7;
 var MS_FROM_W = MS_FROM_S * S_FROM_M * M_FROM_H * H_FROM_D * D_FROM_W;
 
+var randomElement = function(ar) {
+  return ar[Math.floor(Math.random() * ar.length)];
+};
+
 Bot.prototype.greeting = function(user) {
   var message = this.greetings[user.userid];
   var now = new Date();
@@ -709,10 +713,6 @@ Bot.prototype.djAnnouncement = function(user) {
       .replace(/\{user\.fans\}/g, user.fans);
 };
 
-
-var randomElement = function(ar) {
-  return ar[Math.floor(Math.random() * ar.length)];
-};
 
 Bot.prototype.onRoomInfo = function(data) {
   if (this.debug) {
