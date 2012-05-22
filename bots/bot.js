@@ -94,6 +94,7 @@ Bot.prototype.bindHandlers = function() {
   this.friendCommandHandlers['list-off'] = this.onListOff;
   this.friendCommandHandlers['list-reset'] = this.onListReset;
   this.friendCommandHandlers['reset-list'] = this.onListReset;
+  this.friendCommandHandlers['clear-list'] = this.onListReset;
   this.commandHandlers['addme'] = this.onAddme;
   this.friendCommandHandlers['add-first'] = this.onAddFirst;
   this.commandHandlers['removeme'] = this.onRemoveme;
