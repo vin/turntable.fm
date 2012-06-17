@@ -5,23 +5,33 @@ var
 
 // stubs
 bots.imports.ttapi = function() {
-	this.isFake = true;
+  this.isFake = true;
 };
 
 bots.imports.ttapi.prototype.on = function() {
 }
 
 
-// tests
-var instance = new bots.Bot('test.json');
-var sayCalled = false;
-instance.say = function(message) {
-	sayCalled = true;
-	assert.ok(/^commands: /.test(message));
-};
+describe('Bot', function() {
+  var instance;
+  var said;
 
-instance.start(function() {
-		assert.ok(instance.ttapi.isFake);
-		instance.onHelpCommands();
-		assert.ok(sayCalled);
+  beforeEach(function(done) {
+    said = false;
+    instance = new bots.Bot('test.json');
+    instance.start(function() {
+      assert.ok(instance.ttapi.isFake);
+      instance.say = function(message) {
+        said = message;
+      };
+      done();
+    });
+  });
+
+  describe('#helpCommands()', function() {
+    it('should reply with commands', function() {
+      instance.onHelpCommands();
+      assert.ok(/^commands: /.test(said));
+    });
+  });
 });
