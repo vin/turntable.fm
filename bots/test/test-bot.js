@@ -69,3 +69,19 @@ describe('Bot', function() {
     });
   });
 });
+
+describe('Bot statics', function() {
+  describe('#splitCommand()', function() {
+    it('works on a single word', function() {
+      assert.deepEqual(['foo', ''], bots.Bot.splitCommand('foo'));
+    });
+    it('splits the first word from the rest of a command line', function() {
+      assert.deepEqual(['foo', 'bar'], bots.Bot.splitCommand('foo bar'));
+      assert.deepEqual(['foo', 'bar'], bots.Bot.splitCommand('foo   bar'));
+      assert.deepEqual(['foo', 'bar baz'], bots.Bot.splitCommand('foo bar baz'));
+    });
+    it('preserves whitespace in the remainder of the command', function() {
+      assert.deepEqual(['foo', 'bar   baz'], bots.Bot.splitCommand('foo    bar   baz'));
+    });
+  });
+});
