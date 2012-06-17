@@ -3,6 +3,7 @@
 "use strict";
 
 var imports = {
+  events: require('events'),
   repl: require('repl'),
   ttapi: require('ttapi'),
   conf: require('node-config'),
@@ -36,6 +37,8 @@ Bot = function(configName) {
   this.djList = new imports.djlist.DjList();
   this.banList = null;
 };
+
+Bot.prototype = Object.create(imports.events.EventEmitter.prototype);
 
 Bot.usage = function() {
   throw "Usage: " + process.argv[0] + " " + process.argv[1] + " <config name>";
@@ -120,11 +123,11 @@ var nop = function() {};
 Bot.prototype.readGreetings = function() {
   imports.Store.read(this.config.greetings_filename, function(data) {
     this.greetings = data;
-    console.log('loaded %d greetings', Object.keys(this.greetings).length);
+    this.emit('greetingsLoaded', Object.keys(this.greetings).length);
   }.bind(this), nop);
   imports.Store.read(this.config.pending_greetings_filename, function(data) {
     this.pendingGreetings = data;
-    console.log('loaded %d pending greetings', Object.keys(this.pendingGreetings).length);
+    this.emit('pendingGreetingsLoaded', Object.keys(this.greetings).length);
   }.bind(this), nop);
 };
 

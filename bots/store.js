@@ -8,7 +8,7 @@ var imports = {
 Store = function() {};
 
 Store.fullpath = function(path) {
-  return imports.path.join(imports.path.dirname(process.argv[1]), path);
+  return imports.path.join(process.cwd(), path);
 };
 
 Store.tempfile = function(path) {

@@ -1,9 +1,9 @@
-{
+exports.conf = {
 	"noRepl": true,
 	"auth": "fill this in your turntableUserAuth cookie",
 	"userid": "fill this in from your turntableUserId cookie",
 	"roomid": "fill this in from TURNTABLE_ROOMID in view-source:turntable.fm/$ROOM",
-	"greetings_filename": "test-greetings.json",
+	"greetings_filename": "conf/test-greetings.json",
 	"banList": [],
 	"messages": {
 		"help": "Welcome to {room.name}! I am a bot who understands commands and gives stats.  To view a list of commands, type *commands.",
