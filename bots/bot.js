@@ -38,7 +38,7 @@ Bot = function(configName) {
 };
 
 Bot.usage = function() {
-  throw "Usage: node " + process.argv[1] + " <config name>";
+  throw "Usage: " + process.argv[0] + " " + process.argv[1] + " <config name>";
 };
 
 Bot.prototype.onInitConfig = function(cb, err) {
@@ -952,18 +952,16 @@ Bot.prototype.recordActivity = function(userid) {
   this.writeActivity();
 };
 
-Bot.usage = function() {
-  return "usage: " + process.argv[0] + " " + process.argv[1] + " <configname>\n";
-};
-
 exports.Bot = Bot;
 exports.imports = imports;
 
-if (process.argv.length > 2) {
-  var bot = new Bot(process.argv[2]);
-  var factbot = new imports.FactBot(bot);
-  factbot.start();
-} else {
-  process.stderr.write(Bot.usage());
-  process.exit(1);
+if (!module.parent) {
+  if (process.argv.length > 2) {
+    var bot = new Bot(process.argv[2]);
+    var factbot = new imports.FactBot(bot);
+    factbot.start();
+  } else {
+    process.stderr.write(Bot.usage());
+    process.exit(1);
+  }
 }
