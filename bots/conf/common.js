@@ -51,7 +51,7 @@ exports.conf = {
 		"listOff": "The dj list is now off.  Fastest-fingers.",
 		"listAlreadyOn": "The dj list is already on.  Type *list to see the current list.",
 		"listAlreadyOff": "The dj list is already off.  Fastest-fingers.",
-		"listAlreadyListed": "{user.name} is already #{position} on the list.",
+		"listAlreadyListed": "{user.name} is already #:{position}: on the list.",
 		"listRemoved": "{user.name} has been removed from the DJ list.",
 		"listRemoveNotListed": "{user.name} is not on the DJ list.",
 		"listReset": "The dj list has been cleared.",
