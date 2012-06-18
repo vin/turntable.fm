@@ -3,6 +3,7 @@
 "use strict";
 
 var imports = {
+  sys: require('sys'),
   events: require('events'),
   repl: require('repl'),
   ttapi: require('ttapi'),
@@ -15,6 +16,7 @@ var imports = {
 };
 
 Bot = function(configName) {
+  imports.events.EventEmitter.call(this);
   this.ttapi = null;
   this.configName = configName || process.argv[2] || Bot.usage();
   this.config = {};
@@ -38,7 +40,7 @@ Bot = function(configName) {
   this.banList = null;
 };
 
-Bot.prototype = Object.create(imports.events.EventEmitter.prototype);
+imports.sys.inherits(Bot, imports.events.EventEmitter);
 
 Bot.usage = function() {
   throw "Usage: " + process.argv[0] + " " + process.argv[1] + " <config name>";
