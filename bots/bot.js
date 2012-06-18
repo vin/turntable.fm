@@ -335,7 +335,7 @@ Bot.prototype.last = function(username) {
   if (!last) {
     return -1;
   }
-  var age_ms = new Date() - new Date(last);
+  var age_ms = Bot.now() - new Date(last);
   var age_m = Math.floor(age_ms / 1000 / 60);
   return age_m;
 };
@@ -526,7 +526,7 @@ Bot.prototype.onBan = function(text, userid, username) {
   var comment = split[1] || "";
   var subjectid = this.useridsByName[subject_name];
   if (!subjectid) { return; }
-  this.banList.ban(subjectid, comment + " -- " + username + " " + new Date());
+  this.banList.ban(subjectid, comment + " -- " + username + " " + Bot.now());
   this.banList.save(this.config.banlist_filename);
   this.say(this.config.messages.ban
       .replace(/\{user\.name\}/g, subject_name)
@@ -695,8 +695,8 @@ var randomElement = function(ar) {
 
 Bot.prototype.greeting = function(user) {
   var message = this.greetings[user.userid];
-  var now = new Date();
-  var aWeekAgo = new Date().setDate(now.getDate() - 7);
+  var now = Bot.now();
+  var aWeekAgo = Bot.now().setDate(now.getDate() - 7);
   if (!message && (new Date(MS_FROM_S * user.created) > aWeekAgo)) {
     message = randomElement(this.config.messages.newUserGreetings);
   }
@@ -953,9 +953,13 @@ Bot.bareCommands = [
 
 Bot.prototype.recordActivity = function(userid) {
   if (userid === this.config.userid) { return; }
-  this.activity[userid] = new Date();
+  this.activity[userid] = Bot.now();
   this.writeActivity();
 };
+
+Bot.now = function() {
+  return new Date();
+}
 
 exports.Bot = Bot;
 exports.imports = imports;
