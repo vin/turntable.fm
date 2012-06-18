@@ -1,15 +1,18 @@
 var
     assert = require('assert'),
-    bots = require('bots');
+    bots = require('bots'),
+    events = require('events'),
+    sys = require('sys');
 
 
 // stubs
-bots.imports.ttapi = function() {
+FakeTtapi = function() {
+  events.EventEmitter.call(this);
   this.isFake = true;
 };
+sys.inherits(FakeTtapi, events.EventEmitter);
 
-bots.imports.ttapi.prototype.on = function() {
-}
+bots.imports.ttapi = FakeTtapi;
 
 describe('Bot', function() {
   var instance;
@@ -17,8 +20,9 @@ describe('Bot', function() {
 
   beforeEach(function(done) {
     said = false;
+    delete require.cache[require.resolve('node-config')];
+    bots.imports.conf = require('node-config');
     instance = new bots.Bot('test');
-      debugger;
     instance.start(function() {
       assert.ok(instance.ttapi.isFake);
       instance.say = function(message) {
@@ -66,6 +70,14 @@ describe('Bot', function() {
         assert.ok(/^fake2 also has a custom greeting!$/.test(greeting2), greeting2);
 	done();
       });
+    });
+  });
+
+  describe('bare addme', function() {
+    it('adds the speaker to the dj queue', function() {
+      instance.djList.active = true;
+      instance.ttapi.emit('speak', { "command": "speak", "userid": "4dea70c94fe7d0517b1a3519", "name": "@richhemsley", "text": "addme" });
+      assert.deepEqual(['4dea70c94fe7d0517b1a3519'], instance.djList.list);
     });
   });
 });
