@@ -13,6 +13,9 @@ FakeTtapi = function() {
 sys.inherits(FakeTtapi, events.EventEmitter);
 
 bots.imports.ttapi = FakeTtapi;
+bots.imports.Store.write = function(path, data, cb) {
+  process.nextTick(cb);
+};
 
 describe('Bot', function() {
   var instance;
