@@ -692,6 +692,7 @@ var MS_FROM_W = MS_FROM_S * S_FROM_M * M_FROM_H * H_FROM_D * D_FROM_W;
 var randomElement = function(ar) {
   return ar[Math.floor(Math.random() * ar.length)];
 };
+Bot.randomElement = randomElement;
 
 Bot.prototype.greeting = function(user) {
   var message = this.greetings[user.userid];
