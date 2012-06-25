@@ -1,6 +1,6 @@
 // Copyright 2011 Vineet Kumar
 
-Bot = require('./bot').Bot
+Bot = require('./bot').Bot;
 
 FactBot = function(bot) {
   this.__proto__.__proto__ = bot;

@@ -959,7 +959,7 @@ Bot.prototype.recordActivity = function(userid) {
 
 Bot.now = function() {
   return new Date();
-}
+};
 
 exports.Bot = Bot;
 exports.imports = imports;
