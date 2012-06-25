@@ -16,6 +16,7 @@ bots.imports.ttapi = FakeTtapi;
 bots.imports.Store.write = function(path, data, cb) {
   process.nextTick(cb);
 };
+bots.imports.djlist.imports.Store.write = bots.imports.Store.write;
 
 describe('Bot', function() {
   var instance;

@@ -20,7 +20,7 @@ DjList.prototype.next = function() {
 };
 
 /**
-  * Adds the given userid to the list, and returns the position at which it was added.
+  * Adds the given userid to the list, and returns the (1-based) position at which it was added.
   * Returns negative if the userid is already on the list.  In that case, the return value
   * is the existing position subtracted from -1.  (e.g. -1 means the userid is already listed
   * at position 0; -2 means already at position 1, etc.)
@@ -91,3 +91,4 @@ DjList.prototype.save = function(filename_pattern, cb) {
 
 
 exports.DjList = DjList;
+exports.imports = imports;
