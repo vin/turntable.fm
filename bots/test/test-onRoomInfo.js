@@ -23,7 +23,7 @@ var fakeRoomInfo = {
 }
 
 bots.imports.ttapi.prototype.roomInfo = function(cb) {
-	setTimeout(function() { cb(fakeRoomInfo); }, 0);
+	process.nextTick(function() { cb(fakeRoomInfo); });
 }
 
 
@@ -33,8 +33,8 @@ instance.start(function() {
 		assert.ok(instance.ttapi.isFake);
 	instance.refreshRoomInfo(function(data) {
 		assert.ok(data);
-		assert.equal(instance.users['userid1'], fakeUser1);
-		assert.equal(instance.users['userid2'], fakeUser2);
-		assert.equal(Object.keys(instance.users).length, 2);
+		assert.equal(fakeUser1, instance.users['userid1']);
+		assert.equal(fakeUser2, instance.users['userid2']);
+		assert.equal(2, Object.keys(instance.users).length);
 	});
 });
